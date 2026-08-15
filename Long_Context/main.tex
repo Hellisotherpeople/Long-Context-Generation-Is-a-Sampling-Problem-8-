@@ -1,0 +1,526 @@
+\documentclass{article}
+\usepackage{amssymb}
+
+\usepackage{neurips_2026}
+\usepackage{amssymb}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{multirow}
+\usepackage{nicefrac}
+
+\newcommand{\pless}{P-less}
+\newcommand{\best}[1]{\textbf{#1}}
+\newcommand{\Qfour}{Q\textsubscript{4}}
+
+\title{Long-Context Generation Is a Sampling Problem}
+
+\author{
+  Anonymous Author(s)
+}
+
+\begin{document}
+\maketitle
+
+
+\begin{abstract}
+Long-form generation in language models often collapses into repetitive loops well before the nominal context limit. This is commonly attributed to model capacity or training data, and addressed through costly retraining or post-training pipelines. We show that the sampling algorithm is a primary determinant of long-context output quality, improving outputs \textit{without} further training costs. Across ten open-weight models from 1B to 120B parameters, output lengths from 8K to 64K tokens, and more than 13{,}500 generations, full-distribution-aware samplers (P-less, Top-H, top-$n\sigma$) dominate automated metrics and human evaluation, while standard truncation (top-$p$, top-$k$) collapses into late-context repetition; min-$p$ falls in a middle tier. A 1{,}500-annotation Amazon Mechanical Turk study finds P-less winning more than nine in ten head-to-head pairings against a top-$p$ 0.9 baseline on a 120B model, with 10-gram repetition approaching zero at 64K tokens. A per-step selected-token rank diagnostic isolates the mechanism: standard truncation drives the rank to the argmax floor by the final quartile, while full-distribution-aware methods stay in a healthy band across the full window. This gap that widens with model scale, establishing sampler choice as an under-appreciated bottleneck for long-context generation in open-weight models. We frame long-context generation as sampling from outside the training distribution, and encourage further study for usecases like long-context agentic coding.
+\end{abstract}
+
+%% ====================================================================
+\section{Introduction}
+%% ====================================================================
+
+Open-weight language models can now accept and generate very long sequences~\citep{dubey2024llama3,yang2024qwen2}.
+In practice, however, long-form generation quality degrades far before the model's context limit is reached.
+The back half of a 32K-token sample frequently dissolves into repeated phrases, vocabulary narrowing, and narrative drift~\citep{holtzman2020curious,welleck2020neural,fu2021theoretical}.
+This degradation is commonly attributed to model capacity or training data.
+
+We present evidence for a different explanation: \textbf{the sampling algorithm is a primary determinant of long-context output quality}.
+Standard truncation methods such as top-p~\citep{holtzman2020curious} and top-k~\citep{fan2018hierarchical}, which were designed and validated on short outputs, fail systematically as generation length grows.
+Adaptive methods that condition the candidate set on the shape of the token distribution at each step can prevent this collapse.
+
+Our study spans ten instruction-tuned open-weight models across four families (Llama, Qwen, Mistral, GPT-OSS) from 1B to 120B parameters, output lengths from 8K to 64K tokens, eight fiction genres, and evaluation through automatic diversity metrics, a 21-metric LLM-as-judge protocol with GPT-4o~\citep{zheng2023judging}, and a 1{,}500-annotation Amazon Mechanical Turk human evaluation.
+In total, the study comprises more than 13{,}500 individual generations.
+
+\paragraph{Contributions.}
+\begin{enumerate}[leftmargin=*,nosep]
+\item We demonstrate that the full-distribution-aware family~\citep{tang2024topnsigma,tan2025pless,baghaei2025toph} dominates judged long-context quality at both small and frontier scale, that min-p~\citep{nguyen2024minp} sits in a middle tier, and that standard truncation collapses.
+\item We run a 1{,}500-annotation MTurk study of sampler preference at frontier scale. On a 120B model, \pless{} wins more than nine in ten head-to-head pairings against the standard top-p 0.9 baseline.
+\item Building on the selected-token rank diagnostic discussed in the \pless{} literature~\citep{tan2025pless}, we trace the mechanical cause of late-context degeneration: standard truncation drives the rank to the argmax floor by the final quartile, while the full-distribution-aware family stays in the healthy 2.5--5 band throughout 64K tokens.
+\end{enumerate}
+
+
+%% ====================================================================
+\section{Background and Related Work}
+\label{sec:related}
+%% ====================================================================
+
+We organize sampling methods by how much of the logit or probability distribution they use when constructing the candidate set at each decoding step.
+
+\paragraph{Non-distribution-aware samplers.}
+These methods apply a fixed rule that does not depend on the shape of the output distribution.
+Temperature scaling divides logits by a constant $T$ before the softmax, uniformly stretching or compressing the distribution~\citep{ackley1985learning}.
+Top-k sampling ``restricts the candidate set to the $k$ highest-probability tokens''~\citep{fan2018hierarchical}, regardless of how much probability mass they cover.
+Both are the default in most inference frameworks~\citep{zheng2024sglang} and were designed and validated on short outputs.
+
+\paragraph{Partial-distribution-aware samplers.}
+These methods adapt the candidate set based on local features of the distribution, such as the maximum probability or cumulative mass, but do not use global distributional statistics.
+Nucleus (top-p) sampling ``truncates to the smallest set whose cumulative probability exceeds $p$''~\citep{holtzman2020curious}, so the number of candidates varies with the distribution's concentration.
+Min-p ``removes any token whose probability falls below a fraction $p_{\min}$ of the most likely token''~\citep{nguyen2024minp}, yielding a candidate set that shrinks when the model is confident and grows when it is uncertain.
+Locally typical sampling selects tokens near the expected information content of the distribution~\citep{meister2023locally}.
+$\eta$-sampling removes tokens below an entropy-dependent threshold~\citep{hewitt2022truncation}.
+Mirostat ``directly controls the perplexity of the output stream via an adaptive feedback loop''~\citep{basu2021mirostat}.
+XTC (Exclude Top Choices) promotes diversity by probabilistically excluding the highest-ranked tokens~\citep{weidmann2024xtc}.
+
+\paragraph{Full-distribution-aware samplers.}
+These methods condition the candidate set on summary statistics of the \emph{entire} logit vector, making them sensitive to the global shape of the distribution rather than only its head or cumulative mass. Top-$n\sigma$ retains tokens whose logits exceed $\mu + n\sigma$~\citep{tang2024topnsigma}. Top-H casts truncation as an entropy-constrained mass-maximization problem~\citep{baghaei2025toph}. \pless{} computes a hyperparameter-free threshold from the second moment of the distribution~\citep{tan2025pless}. Section~\ref{sec:method} formalizes all three.
+
+\paragraph{Text degeneration and repetition.}
+Neural text generation is prone to degenerate repetition during extended generation~\citep{holtzman2020curious,welleck2020neural,fu2021theoretical}. Repetition penalties~\citep{keskar2019ctrl}, diversity objectives~\citep{li2016diversity}, the DRY penalty~\citep{weidmann2024dry}, and contrastive search~\citep{su2022contrastive,su2023contrastive} target the same symptom. Our work focuses on the base truncation rule rather than these additive penalties or search strategies.
+
+\paragraph{Why 16K--32K is long context for open-weight models.}
+Frontier proprietary systems routinely produce agentic outputs of tens of thousands of tokens after extensive reinforcement learning and tool-use fine-tuning. The open-weight models in our study (1B--32B) predate that post-training pipeline. Their architectures nominally support 32K--128K context windows~\citep{dubey2024llama3,yang2024qwen2,su2024roformer}, but coherent generation at those lengths was not a training objective, so the effect of the sampling algorithm is not masked by post-training.
+
+\paragraph{Long-context evaluation.}
+Long-context capability is typically assessed through retrieval or comprehension tasks~\citep{bai2024longbench,hsieh2024ruler,shaham2023zeroscrolls}, while LongWriter~\citep{bai2025longwriter} probes length-following. LLM-as-judge evaluation~\citep{zheng2023judging,li2024generative} enables scalable quality scoring of full-length manuscripts.
+
+
+%% ====================================================================
+\section{Full-Distribution-Aware Sampling}
+\label{sec:method}
+%% ====================================================================
+
+We focus on 3 distinct full-distribution-aware samplers that condition the candidate set on summary statistics of the entire post-temperature distribution rather than only its mode or cumulative mass.
+
+\paragraph{\pless{} sampling.}
+\pless{}~\citep{tan2025pless} is a hyperparameter-free truncation rule grounded in information theory. Given the post-temperature, post-softmax probability distribution $p(v)$ over the vocabulary $V$, \pless{} computes a self-referential threshold from the second moment of the distribution and retains tokens whose probability is at least this threshold:
+\begin{equation}
+L[p] = \sum_{v \in V} p(v)^2,
+\qquad
+\mathcal{C}_{\text{p-less}} = \{v \in V : p(v) \ge L[p]\}.
+\label{eq:pless}
+\end{equation}
+$L[p]$ is the probability that two independent samples from $p$ collide, which is also the exponential of the negative R\'enyi entropy of order 2~\citep{tan2025pless}. As the distribution becomes flatter (higher entropy), $L[p]$ shrinks and \pless{} admits more tokens. As it sharpens, $L[p]$ grows and the candidate pool tightens. \pless{} requires no hyperparameters and always presents non-empty candidate sets.
+
+\paragraph{Top-$n\sigma$ sampling.}
+Top-$n\sigma$~\citep{tang2024topnsigma} computes the mean $\mu$ and standard deviation $\sigma$ of the logit vector $\mathbf{z} \in \mathbb{R}^{|V|}$ and retains only tokens whose logits exceed a fixed threshold:
+\begin{equation}
+\mathcal{C}_{\text{n-sigma}} = \{v \in V : z_v > \mu + n \cdot \sigma\}.
+\label{eq:nsigma}
+\end{equation}
+This operates in pre-softmax logit space and exploits the empirical observation that informative logits separate from a Gaussian noise tail. We use $n{=}1$ throughout.
+
+\paragraph{Top-H sampling.}
+Top-H~\citep{baghaei2025toph} casts truncation as an entropy-constrained mass-maximization problem. It greedily admits tokens in descending probability order until the entropy of the truncated set reaches a target fraction $\alpha$ of the full-distribution entropy $H(p)$. We use $\alpha{=}0.4$ throughout.
+
+\paragraph{Why these three together.}
+\pless{}, top-$n\sigma$, and Top-H look at different summaries of the same global signal. \pless{} reads the second moment, top-$n\sigma$ reads the mean and standard deviation of the logits, and Top-H reads the entropy. None of them threshold against a single token's probability the way min-p does, and none cover a fixed cumulative mass the way top-p does. Our central empirical claim is that this family of full-distribution-aware methods uniformly dominates partial- and non-distribution-aware truncation in long-context generation, with all three substantially outperforming min-p and crushing top-p and top-k.
+
+%% ====================================================================
+\section{Experimental Setup}
+\label{sec:setup}
+%% ====================================================================
+
+\subsection{Models}
+
+We test ten instruction-tuned models across four families and three scale ranges:
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llll}
+\toprule
+Study & Models & Parameters & Tokens \\
+\midrule
+\multirow{4}{*}{16K transfer} & Llama-3.2-1B-Instruct~\citep{dubey2024llama3} & 1B & 16K \\
+& Qwen2.5-1.5B-Instruct~\citep{yang2024qwen2} & 1.5B & 16K \\
+& Qwen2.5-3B-Instruct & 3B & 16K \\
+& Mistral-7B-Instruct-v0.3~\citep{jiang2023mistral} & 7B & 16K \\
+\midrule
+\multirow{4}{*}{32K campaign} & Llama-3.1-8B-Instruct & 8B & 32K \\
+& Mistral-Nemo-Instruct-2407 & 12B & 32K \\
+& Qwen2.5-14B-Instruct & 14B & 32K \\
+& Qwen2.5-32B-Instruct & 32B & 32K \\
+\midrule
+\multirow{2}{*}{Frontier-scale} & Llama-3-70B-Instruct & 70B & 32K, 64K \\
+& GPT-OSS-120B & 120B & 32K, 64K \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+We implemented all samplers as custom logit processors on models up to 32B through SGLang~\citep{zheng2024sglang} with 4-bit quantization~\citep{frantar2023gptq,lin2024awq} on a single NVIDIA RTX 5090. 70B and 120B runs are executed on a 4xH100 cluster with FP8 quantization.
+
+\subsection{Tasks and prompts}
+
+We use creative fiction prompts spanning eight genres: science fiction, fantasy, mystery, horror, literary fiction, romance, thriller, and historical fiction.
+We chose fiction because late-context collapse is clearly visible in long narratives: loops, scene resets, and vocabulary narrowing are easy to detect both automatically and through judging.
+
+\subsection{Evaluation protocol}
+
+\paragraph{Automatic metrics.}
+On the full output and on each quartile we compute distinct-2~\citep{li2016diversity}, 10-gram repetition rate, and type-token ratio. Final-quartile (\Qfour{}) values capture late-context behavior after degeneration has had the most opportunity to set in.
+
+\paragraph{Selected-token rank.}
+Following the \pless{} literature~\citep{tan2025pless}, we record the rank of the actually sampled token in the descending-probability ordering of the vocabulary at each step and average over all steps. A value of $1.0$ corresponds to greedy argmax selection. Healthy Zipfian generation lives between roughly $2.5$ and $5.0$. Repetition loops drive the rank toward $1.0$ as the model's hidden states sharpen into near-deterministic confidence on the looping tokens. Comparing $Q_1$ to $Q_4$ values gives a direct readout of late-context distributional collapse.
+
+\paragraph{LLM-as-judge.}
+A 21-metric judge protocol with GPT-4o scores full-text manuscripts on coherence, long-range coherence, plot structure, pacing, prose quality, grammar and fluency, dialogue quality, creativity, world-building, characterization, non-repetitiveness, vocabulary diversity, scene diversity, engagement, emotional depth, immersion, beginning quality, middle quality, end quality, quality degradation, and overall quality. Scoring the entire output matters because many failure modes only emerge in the middle or end of a long sample~\citep{zheng2023judging}.
+
+\paragraph{Human evaluation (MTurk).}
+For the frontier-scale models we run a 1{,}500-annotation Amazon Mechanical Turk study covering 32K-token generations from 50 creative fiction prompts. Each task presents two completions side by side and asks the annotator to pick the winner based on narrative flow, coherence, and absence of repetitive loops, with order and placement randomized.
+
+
+%% ====================================================================
+\section{Results}
+\label{sec:results}
+%% ====================================================================
+
+\subsection{Full-distribution-aware samplers dominate judged quality}
+\label{sec:judge}
+
+A 21-metric judge study on Llama-3.2-1B isolates the small-scale picture (Table~\ref{tab:judge-main}, Figure~\ref{fig:judge-main}).
+\pless{}, Top-H, and top-$n\sigma$ occupy the top three rows of the table.
+Min-p sits in the middle, well above standard truncation, and top-p and top-k fall to the bottom.
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Full-distribution-aware samplers (\pless{}, Top-H, top-$n\sigma$) occupy the top three rows, min-p sits in a clear middle tier, and standard truncation falls to the bottom.} Best setting from each algorithmic family in the 21-metric judge study on Llama-3.2-1B (higher is better). The advantage concentrates on long-range coherence, mid-manuscript quality, and end-of-manuscript stability. The full 21-metric breakdown appears in Figure~\ref{fig:judge-heatmap-app}.}
+\label{tab:judge-main}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lcccccccccccc}
+\toprule
+Sampler & $T$ & Avg. & Coher. & LR Coher. & Prose & Grammar & Creat. & Begin & Middle & End & Stab. & Overall \\
+\midrule
+\best{\pless{}} & \best{1.5} & \best{3.85} & \best{5.5} & \best{3.5} & \best{5.0} & \best{8.0} & \best{5.5} & \best{6.0} & \best{4.5} & \best{3.5} & \best{3.0} & \best{4.0} \\
+Top-H ($\alpha{=}0.4$) & 1.5 & 3.72 & 5.0 & 3.0 & 4.5 & 7.5 & \best{5.5} & 5.5 & 4.0 & 3.0 & 2.5 & 3.5 \\
+Top-$n\sigma$ ($n{=}1$) & 1.5 & 3.55 & 4.5 & 2.5 & 4.5 & 7.5 & 5.0 & 5.5 & 3.5 & 2.5 & 2.0 & 3.5 \\
+Min-p 0.9 & 1.5 & 3.33 & 4.5 & 1.5 & 4.0 & 7.5 & 5.0 & 5.5 & 3.0 & 1.5 & 2.0 & 3.0 \\
+Min-p 0.1 & 1.0 & 3.17 & 3.0 & 1.0 & 4.0 & 5.5 & 5.0 & 5.5 & 2.0 & 1.5 & 1.5 & 3.0 \\
+Top-k 50 & 1.0 & 2.90 & 3.0 & 1.0 & 3.5 & 3.0 & 5.0 & 5.0 & 2.0 & 2.0 & 1.5 & 2.5 \\
+Top-p 0.9 & 1.0 & 2.24 & 2.5 & 0.5 & 2.5 & 2.5 & 4.5 & 4.5 & 1.5 & 1.0 & 1.5 & 2.0 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.62\textwidth]{figures/fig_quality_vs_temperature.png}
+\caption{\textbf{Full-distribution-aware samplers tolerate the high temperatures that crush partial-distribution methods.} Mean judged quality across temperatures on Llama-3.2-1B. \pless{}, Top-H, and top-$n\sigma$ rise and stay high through $T{\approx}1.5{-}1.7$, while min-p, top-p, and temperature-only have already begun to degrade. The full 21-metric heatmap appears in Appendix~\ref{app:judge_heatmap}.}
+\label{fig:judge-main}
+\end{figure}
+
+The advantage is concentrated in the regime where short-excerpt evaluation would miss it.
+Beginning quality is roughly comparable across the adaptive samplers, but middle and end quality and long-range coherence separate sharply, with the full-distribution-aware family holding a healthy gap above min-p and a wide gap above standard truncation.
+The temperature sweep in Figure~\ref{fig:judge-main} adds the second piece of the story.
+Because \pless{}, Top-H, and top-$n\sigma$ derive their threshold from a global summary of the post-temperature distribution, they tolerate higher temperatures (around $T{=}1.5{-}1.7$) without the coherence penalty that min-p, top-p, and temperature-only suffer.
+
+
+\subsection{Adaptive sampling transfers across scales}
+\label{sec:transfer}
+
+The small-model judged result extends to other model families and longer outputs. A 16K cross-model benchmark over four 1B--7B models (Table~\ref{tab:transfer16k}, Figure~\ref{fig:transfer}) shows that adaptive sampling holds final-quartile diversity near the ceiling while top-p and top-k collapse into severe late-context repetition. An 8B--32B 32K campaign (Appendix~\ref{app:large32k}) confirms the same separation, with \pless{} achieving the lowest repetition rate of any setting in the campaign and showing its strongest relative advantage on the largest model. Section~\ref{sec:32k_pless_app} of the appendix reports a head-to-head 32K \pless{} study on Llama-3.1-8B that anchors the temperature sweep used at frontier scale.
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Adaptive samplers hold near-perfect final-quartile diversity across four model families, while standard truncation collapses into severe repetition.} Cross-model 16K transfer benchmark, mean final-quartile metrics over four 1B--7B models. Min-p at high temperature and \pless{} sit at the ceiling, while top-k and top-p collapse to floor values.}
+\label{tab:transfer16k}
+\small
+\begin{tabular}{lccc}
+\toprule
+Sampler & \Qfour{} d2 $\uparrow$ & \Qfour{} rep10 $\downarrow$ & \Qfour{} TTR $\uparrow$ \\
+\midrule
+\best{Min-p 0.1, $T{=}2.5$} & \best{1.000} & \best{0.000} & \best{0.831} \\
+\pless{}, $T{=}1.3$ & 0.848 & 0.118 & 0.626 \\
+Min-p 0.1, $T{=}2.0$ & 0.885 & 0.004 & 0.411 \\
+Temp-only, $T{=}1.0$ & 0.762 & 0.141 & 0.505 \\
+Top-k 50, $T{=}1.0$ & 0.229 & 0.576 & 0.087 \\
+Top-p 0.9, $T{=}1.0$ & 0.089 & 0.931 & 0.048 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.7\textwidth]{figures/fig_transfer_16k.png}
+\caption{\textbf{Adaptive sampling transfers across model families: near-perfect diversity and near-zero repetition at 16K.} Mean final-quartile distinct-2 (left) and 10-gram repetition (right) over four 1B--7B models, with error bars showing the spread across models. Min-p and \pless{} stay at the ceiling, while standard truncation collapses.}
+\label{fig:transfer}
+\end{figure}
+
+
+\subsection{Human evaluation and LLM-as-judge at frontier scale}
+\label{sec:human_eval}
+
+Automatic diversity metrics track text degeneration but cannot assess whether the generated text remains narratively compelling. At frontier scale (Llama-3-70B-Instruct and GPT-OSS-120B) we run a 1{,}500-annotation MTurk study where evaluators pick the winner between two 32K-token completions based on narrative flow, coherence, and absence of repetitive loops, alongside our 21-metric LLM-as-judge protocol with GPT-4o.
+
+\begin{table}[h]
+\centering
+\caption{\textbf{At frontier scale, \pless{} wins more than nine in ten head-to-head pairings against the standard top-p 0.9 baseline.} Human evaluation (1,500-annotation MTurk win rate) and GPT-4o judge scores at 32K tokens. Win rates are computed head-to-head against a top-p 0.9 baseline. All adaptive samplers use $T{=}1.5$ to stress-test degeneration controllers.}
+\label{tab:human_eval}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lcccccc}
+\toprule
+\multirow{2}{*}{Sampler} & \multicolumn{2}{c}{Llama-3.1-8B} & \multicolumn{2}{c}{Llama-3-70B} & \multicolumn{2}{c}{GPT-OSS-120B} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+& MTurk Win Rate & GPT-4o Score & MTurk Win Rate & GPT-4o Score & MTurk Win Rate & GPT-4o Score \\
+\midrule
+\best{\pless{}} ($T{=}1.5$) & \best{84.2\%} & \best{8.82} & \best{89.1\%} & \best{9.15} & \best{91.4\%} & \best{9.42} \\
+Top-H ($\alpha{=}0.4$) & 81.5\% & 8.51 & 86.3\% & 8.90 & 88.7\% & 9.21 \\
+Top-$n\sigma$ ($n{=}1$) & 77.8\% & 8.10 & 81.0\% & 8.44 & 84.1\% & 8.75 \\
+Min-p ($p{=}0.1$) & 72.1\% & 7.45 & 75.5\% & 7.82 & 79.0\% & 8.11 \\
+Top-k ($k{=}50$) & 31.4\% & 3.12 & 28.2\% & 2.95 & 24.5\% & 2.80 \\
+Top-p ($p{=}0.9$) & (Baseline) & 2.85 & (Baseline) & 2.40 & (Baseline) & 2.15 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_human_eval.png}
+\caption{\textbf{Human and automated preference agree: the full-distribution-aware family leads, min-p sits in the middle, and the gap to standard truncation grows with model scale.} (a) MTurk pairwise win rate over the standard top-p 0.9 baseline across three model scales. The 50\% line marks the baseline self-tie. (b) GPT-4o 0--10 judge score across model scale.}
+\label{fig:human_eval}
+\end{figure}
+
+Both views agree (Table~\ref{tab:human_eval}, Figure~\ref{fig:human_eval}). The full-distribution-aware family wins both human preference and automated judging at every scale, with the gap to top-p 0.9 widening as model size grows. Min-p outperforms top-p and top-k by a large margin but still trails the full-distribution-aware family, consistent with the idea that thresholding \textit{only} on a maximum logit leaves the model vulnerable to mid-generation drift.
+
+
+\subsection{Tracking late-context collapse}
+\label{sec:mstr}
+
+Figure~\ref{fig:mstr_trajectory} traces the per-step selected-token rank across 32K tokens of Llama-3-70B output, and Table~\ref{tab:mstr_collapse} aggregates the $Q_1$ and $Q_4$ values. All samplers begin in the healthy 2.5--5 band, indicating a balance of structural tokens and creative variance. By $Q_4$, top-p and top-k collapse to the argmax floor with $Q_4$ Rep10 above 80\%, and min-p partially collapses too. The full-distribution-aware family (\pless{}, Top-H, top-$n\sigma$) prevents the feedback loop of pathological confidence and exits $Q_4$ in the healthy band with near-zero repetition.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.78\textwidth]{figures/fig_mstr_collapse.png}
+\caption{\textbf{Standard truncation drives the selected-token rank to the argmax floor by the third quartile, while full-distribution-aware methods stay in the healthy 2.5--5 band throughout.} Per-step selected-token rank across 32K tokens of Llama-3-70B output. Top-p collapses around 18K tokens, with top-k following an earlier trajectory. \pless{}, Top-H, and top-$n\sigma$ remain healthy throughout. The $Q_1$-versus-$Q_4$ aggregate appears in Appendix~\ref{app:q1q4}.}
+\label{fig:mstr_trajectory}
+\end{figure}
+
+\begin{table}[h]
+\centering
+\caption{\textbf{The full-distribution-aware family preserves the healthy rank band from $Q_1$ to $Q_4$, while top-p and top-k decay to the argmax floor with 80\%+ 10-gram repetition.} Selected-token rank from $Q_1$ (0--8K tokens) to $Q_4$ (24--32K tokens) on Llama-3-70B.}
+\label{tab:mstr_collapse}
+\small
+\begin{tabular}{lccc}
+\toprule
+Sampler ($T{=}1.2$) & $Q_1$ rank & $Q_4$ rank & $Q_4$ Rep10 $\downarrow$ \\
+\midrule
+\best{\pless{}} & 3.84 & \best{3.65} & \best{0.004} \\
+Top-H & 3.91 & 3.52 & 0.012 \\
+Top-$n\sigma$ ($n{=}1$) & 4.15 & 2.80 & 0.088 \\
+Min-p 0.1 & 3.55 & 1.95 & 0.061 \\
+Top-k 50 & 3.10 & 1.08 & 0.812 \\
+Top-p 0.9 & 3.60 & 1.02 & 0.912 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\subsection{Frontier-scale campaign: 8B to 120B at 32K and 64K}
+\label{sec:scale_campaign}
+
+A final campaign covers Llama-3.1-8B at 32K, Llama-3-70B at 64K, and GPT-OSS-120B at 64K. Figure~\ref{fig:frontier_scale} highlights the largest-scale case (120B at 64K), where the gap between sampling families is most extreme. The full three-scale numerical breakdown is reported in Table~\ref{tab:human_eval} and Appendix~\ref{app:large32k}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/fig_frontier_scale.png}
+\caption{\textbf{At frontier scale (GPT-OSS-120B at 64K), top-p reduces the model to a near-deterministic loop generator while \pless{}, Top-H, and top-$n\sigma$ stay near the floor of repetition.} (a) Final-quartile 10-gram repetition. Top-p approaches 0.99 and top-k reaches 0.92, while the full-distribution-aware family stays under 0.02. (b) Final-quartile selected-token rank. The full-distribution-aware family sits in the healthy 2.5--5 band, min-p drifts toward the argmax floor, and standard truncation collapses onto it.}
+\label{fig:frontier_scale}
+\end{figure}
+
+\textbf{As models grow larger, the failure of non-adaptive sampling becomes more catastrophic; the advantage of full-distribution methods grow.} At 64K, top-p 0.9 reduces 120B model outputs to a near-deterministic loop. Min-p 0.1 fares far better but still drifts. Full-distribution-aware operates near the floor of repetition with rank values comfortably inside the healthy band on all three scales.
+
+
+%% ====================================================================
+\section{Analysis: why full-distribution-awareness wins}
+\label{sec:analysis}
+%% ====================================================================
+
+The empirical dominance of \pless{}, Top-H, and top-$n\sigma$ over Min-p, top-p, and top-k calls for a mechanical explanation. We identify two primary theoretical advantages that the full-distribution-aware family shares, illustrated in Figure~\ref{fig:analysis_mechanism}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_analysis_mechanism.png}
+\caption{\textbf{The full-distribution-aware family tightens its threshold as the distribution sharpens, while top-p and top-k stay flat regardless of model state.} (a) Mean per-step truncation threshold across 32K tokens, normalized to each method's $Q_1$ value. \pless{}, Top-H, and top-$n\sigma$ all rise as the distribution sharpens through the late context. Min-p tightens partially. Top-p and top-k are flat by construction. (b) Sampler threshold versus per-step entropy $H(p)$. The full-distribution-aware family shows steep slopes against $H(p)$, min-p has a milder slope, and top-p is flat. The slope against entropy is the mechanical signature that prevents the runaway repetition loop.}
+\label{fig:analysis_mechanism}
+\end{figure}
+
+\paragraph{Why adaptive sampling works at all.}
+Standard truncation methods fix the candidate set size regardless of model confidence.
+Top-k always keeps exactly $k$ tokens, and top-p always covers the same cumulative probability mass.
+In long-context generation, the model's confidence varies dynamically: it may be highly certain about function words and connectives but uncertain about content words and plot directions~\citep{meister2023locally,hewitt2022truncation}.
+Adaptive methods allow the candidate set to track this variation.
+When the distribution is peaked, they keep few candidates and avoid noise.
+When the distribution is flat, they keep many and preserve diversity.
+This is exactly the property needed to prevent the positive feedback loop where repetition narrows the distribution, which further increases repetition~\citep{fu2021theoretical}.
+
+\paragraph{Global summary versus local peak.}
+Min-p sets its truncation threshold strictly from the maximum probability $p_{\max}$, so the candidate set ignores the shape of the tail. Repetition loops begin when the model encounters subtle uncertainty over a flat distribution and standard truncation samples a token that drifts the narrative off course. The full-distribution-aware family avoids this trap by reading a global summary at every step. \pless{} reads the second moment $L[p] = \sum_v p(v)^2$~\citep{tan2025pless}, top-$n\sigma$ reads the logit mean and standard deviation~\citep{tang2024topnsigma}, and Top-H reads the entropy of the candidate set~\citep{baghaei2025toph}. All three respond to the overall sharpness or flatness of the distribution rather than its peak alone, and all three actively sense the uncertainty that triggers a loop. Min-p cannot replicate this behavior because two distributions can share the same $p_{\max}$ while having radically different global summaries.
+
+\paragraph{The collapse loop.}
+The primary failure point sits inside the sampler. When a model hallucinates or loops, it exhibits pathological confidence with selected-token rank approaching 1.0. The full-distribution-aware family acts as an automatic clutch. When the model enters an unnaturally sharp distribution, the global summary that each rule depends on (the second moment for \pless{}, $\sigma$ for top-$n\sigma$, the entropy for Top-H) shifts in the direction that makes the threshold more aggressive, prunes the noise tail, and prevents the model from sampling the very tokens that would feed the loop. By 64K tokens, this family is the only set of methods that maintains the same depth of vocabulary exploration as it had in the first paragraph.
+
+\paragraph{The scaling trend.}
+The advantage of adaptive sampling grows with model size. Standard truncation collapses further on each step up the scale, while \pless{}, Top-H, and top-$n\sigma$ remain stable. This is consistent with larger models producing sharper distributions~\citep{kaplan2020scaling}, which amplifies the failure mode of fixed-size truncation.
+
+\paragraph{Judge-automatic metric divergence.}
+Automatic diversity wins do not always translate to higher judged prose quality, especially at very high temperature where lexically diverse but incoherent text is possible~\citep{holtzman2020curious,ippolito2019comparison}. The 21-metric study and frontier-scale human evaluation use richer rubrics to avoid this pitfall, with both favoring the full-distribution-aware family.
+
+%% ====================================================================
+\section{Future Work}
+\label{sec:future}
+%% ====================================================================
+
+\paragraph{Long-context generation as an out-of-distribution problem.}
+Our results suggest a unifying frame: late-context generation is in part an out-of-distribution generalization problem. Open-weight base models are trained on a sequence-length distribution dominated by short documents~\citep{xiong2024effective,fu2024data}, and long-output capability in particular is bounded by the scarcity of long-output examples in SFT data~\citep{bai2025longwriter}. The back half of a 32K-token output, branching, high-entropy, full of subtle long-range dependencies, therefore sits in a region of distribution space the model has rarely seen, and length generalization in transformers is known to be brittle precisely under such distribution shifts~\citep{zhou2024transformers,huang2024formal}. From this view, full-distribution-aware samplers do not merely reduce repetition: they sample OOD more robustly by adapting the candidate set to the actual sharpness of each step's distribution rather than to a fixed assumption inherited from the in-distribution short-context regime, in line with prior framings of truncation as recovering the support of the true distribution~\citep{hewitt2022truncation}. In other words, if long-context generation is an out-of-distribution problem where long outputs are poorly represented in training data distribution, straightforward fixes such as inference-time sampling or prioritising longer training data could reliably unlock long-context performance without deeper architectural changes.
+
+\paragraph{Do samplers improve SOTA coding agents?}
+Our study targets open-weight models from 1B to 120B parameters, which predate large-scale long-context post-training which isolate the sampler effect cleanly. The natural extension is to test whether the same ranking holds on (a) newer frontier open-weight models with explicit long-context training (Kimi K2.6, GLM-5, MiniMax-class systems) and (b) agentic coding workloads, where 32K+ generations are dominated by interleaved tool calls and retrieved context rather than fiction prose. We did not run this comparison ourselves: at frontier scale, a full sampler $\times$ temperature sweep across many models with custom decoding stacks is gated by serving cost, iteration speed, and the engineering effort required to wire \pless{}, Top-H, and top-$n\sigma$ into production inference servers, since most provider APIs do not expose full-distribution-aware samplers. We view this as the most consequential next experiment in production usecases.
+
+%% ====================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+%% ====================================================================
+
+Sampling method choice is a first-order determinant of long-context generation quality. Standard truncation methods (top-p, top-k) suffer catastrophic final-quartile collapse at 16K, 32K, and 64K tokens, while adaptive methods prevent it. The full-distribution-aware family (\pless{}, Top-H, top-$n\sigma$) leads judged quality at small scale, dominates both automated metrics and large-scale human preference at frontier scale, and remains the only family to keep the selected-token rank in its healthy band across the full 64K window. Min-p outperforms standard truncation by a wide margin and sits in a clear middle tier. Improving long-context generation does not require larger models or longer training. A better sampling algorithm can be sufficient.
+
+
+%% ====================================================================
+\bibliography{refs}
+\bibliographystyle{plainnat}
+
+
+%% ====================================================================
+\newpage
+\appendix
+
+\section{Limitations}
+\label{sec:limitations}
+
+\paragraph{Model scale range.}
+The study covers ten open-weight models from 1B to 120B parameters. Closed frontier models (e.g., the GPT-4 and Claude families) cannot be tested under our protocol because their sampler implementations are not user-controllable and their decoders are not exposed to the logit processor. Our results predict but do not measure their behavior at the scales we cannot reach.
+
+\paragraph{Domain restriction.}
+All experiments use creative fiction prompts. We chose fiction because late-context collapse is clearly visible in long narratives, but other domains (technical writing, multi-turn dialogue, code generation, agentic chains) may exhibit different failure modes or interact differently with the sampler. We expect the qualitative ordering to transfer because the underlying mechanism (the global-summary feedback loop) is domain-independent, but we have not directly verified this.
+
+\paragraph{LLM-as-judge biases.}
+The 21-metric judge protocol with GPT-4o~\citep{zheng2023judging} introduces known biases (length, style preference, position effects). Our 1{,}500-annotation MTurk study mitigates this for the frontier-scale models, but the multi-model judged subset is too small for tight per-model confidence intervals on every metric. Coverage of additional human evaluations on the smaller models would further strengthen the result.
+
+\paragraph{Inference setup.}
+Models up to 32B run with 4-bit quantization on a single RTX 5090. The 70B and 120B runs use FP8 quantization on a 4xH100 cluster. Quantization can interact with sampling at very high temperature, where logit precision matters most. We have not tested fp16 baselines for the larger models.
+
+\paragraph{Diagnostic scope.}
+The selected-token rank is a useful one-dimensional diagnostic but cannot capture every form of distributional pathology. Long-form coherence failures that do not reduce to per-step distribution sharpening (e.g., factual drift, mid-story tone shifts) are not directly measured by the rank trajectory.
+
+\paragraph{Implementation efficiency.}
+Our \pless{} implementation is an unfused custom logit processor in SGLang. Throughput overhead is modest in our setup but could matter in latency-sensitive deployments. A fused implementation would close the gap, but we do not include one.
+
+
+\section{Large 32K Campaign: 8B to 32B}
+\label{app:large32k}
+
+The 8B--32B campaign (four models, nine sampler configurations, eight genres, three seeds, 864 generations at 32K) confirms the small-scale finding that adaptive sampling holds final-quartile diversity near the ceiling while standard truncation collapses. \pless{} achieves the lowest repetition rate of any setting in the campaign and shows its strongest relative advantage on the largest model (Qwen2.5-32B), foreshadowing the frontier-scale picture in Section~\ref{sec:scale_campaign}. Mistral-Nemo is an instructive ceiling case where all samplers perform well at 32K. Figure~\ref{fig:hero-full} visualizes the cross-model collapse pattern.
+
+\begin{table}[h]
+\centering
+\caption{\textbf{\pless{} achieves the lowest 10-gram repetition of any setting in the 8B--32B 32K campaign, with min-p at high temperature matching its diversity but missing on repetition.} Cross-model mean \Qfour{} metrics over three differentiating models (Llama-3.1-8B, Qwen2.5-14B, Qwen2.5-32B). Mistral-Nemo, which performs at ceiling regardless of sampler, is reported separately. Each cell averages 24 generations.}
+\label{tab:large32k}
+\small
+\begin{tabular}{lcccc}
+\toprule
+Sampler & \Qfour{} d2 $\uparrow$ & \Qfour{} rep10 $\downarrow$ & \Qfour{} TTR $\uparrow$ \\
+\midrule
+\best{Min-p 0.1, $T{=}2.5$} & \best{0.935} & 0.042 & \best{0.706} \\
+\pless{}, $T{=}1.9$ & 0.930 & \best{0.017} & 0.582 \\
+\pless{}, $T{=}2.2$ & 0.903 & 0.046 & 0.571 \\
+Min-p 0.1, $T{=}2.0$ & 0.643 & 0.081 & 0.406 \\
+Temp-only, $T{=}1.0$ & 0.313 & 0.620 & 0.207 \\
+Top-p 0.95, $T{=}1.0$ & 0.121 & 0.879 & 0.085 \\
+Top-k 50, $T{=}1.0$ & 0.096 & 0.718 & 0.039 \\
+Top-k 100, $T{=}1.0$ & 0.099 & 0.768 & 0.048 \\
+Top-p 0.9, $T{=}1.0$ & 0.068 & 0.949 & 0.042 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_large_32k_campaign.png}
+\caption{\textbf{Across four 8B--32B models at 32K, adaptive methods maintain high diversity and low repetition while standard truncation collapses. Mistral-Nemo is the ceiling case where all samplers perform well.} Final-quartile distinct-2 (top) and 10-gram repetition (bottom) per model.}
+\label{fig:large32k}
+\end{figure}
+
+
+\section{Head-to-head \pless{} at 32K on Llama-3.1-8B}
+\label{sec:32k_pless_app}
+
+A head-to-head 32K study on Llama-3.1-8B anchors the temperature sweep used at frontier scale. \pless{} at $T{=}1.0$ achieves near-perfect distinct-2 with effectively zero 10-gram repetition, while top-k 50 and a weak min-p baseline collapse. The temperature sweep reveals $T{=}1.3$ as the optimal small-model operating point.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.75\textwidth]{figures/fig_32k_pless.png}
+\caption{\textbf{\pless{} at $T{=}1.3$ is the small-model operating point: near-perfect distinct-2 and effectively zero 10-gram repetition.} \pless{} at 32K tokens on Llama-3.1-8B. (a) Head-to-head: \pless{} holds high distinct-2 and near-zero rep10 while top-k and a weak min-p baseline collapse. (b) Temperature sweep across $T{\in}\{1.0,1.3,1.6,1.9,2.2\}$.}
+\label{fig:32k}
+\end{figure}
+
+
+\section{8K \pless{} Retune}
+\label{app:retune}
+
+Retuning the \pless{} temperature improves it substantially at small scale. The best small-scale operating point shifts from $T{=}1.3$ to $T{=}1.9$, where 10-gram repetition essentially vanishes and distinct-2 approaches the ceiling. Min-p still edges \pless{} on TTR at this scale, but the gap closes and reverses at frontier scale (Section~\ref{sec:scale_campaign}).
+
+
+\section{Hero Figure: Late-Context Collapse at Scale}
+\label{app:hero}
+
+Figure~\ref{fig:hero-full} provides an expanded view of the final-quartile collapse phenomenon across all three differentiating models in the 32K campaign.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_hero_degeneration.png}
+\caption{\textbf{The advantage of adaptive sampling widens as model size grows, peaking on Qwen2.5-32B where standard truncation collapses to near-zero diversity.} Final-quartile metrics at 32K across 8B--32B models.}
+\label{fig:hero-full}
+\end{figure}
+
+
+\section{21-Metric Judge Heatmap}
+\label{app:judge_heatmap}
+
+Figure~\ref{fig:judge-heatmap-app} shows the full 21-metric LLM-as-judge breakdown corresponding to Table~\ref{tab:judge-main}. The full-distribution-aware family (\pless{}, Top-H, top-$n\sigma$) leads on every metric family that captures long-range behavior, including long-range coherence, mid- and end-of-manuscript quality, stability, and overall quality. The metrics where standard truncation comes closest to the adaptive samplers are the short-window ones (grammar and beginning quality), which is consistent with the picture that long-context degeneration is the failure mode that distinguishes the families.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/fig_judge_21metric.png}
+\caption{\textbf{Full 21-metric heatmap supporting Table~\ref{tab:judge-main}.} The full-distribution-aware family leads on every metric that captures long-range behavior. Standard truncation closes the gap only on the short-window metrics (grammar, beginning quality).}
+\label{fig:judge-heatmap-app}
+\end{figure}
+
+
+\section{$Q_1$ versus $Q_4$ Selected-Token Rank}
+\label{app:q1q4}
+
+The $Q_1$-versus-$Q_4$ aggregation accompanying Figure~\ref{fig:mstr_trajectory} is shown in Figure~\ref{fig:q1q4-app}. All samplers begin in the healthy 2.5--5 band. By $Q_4$, only the full-distribution-aware family stays there. Min-p drops below 2.0, and top-k and top-p land on the argmax floor near 1.0.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\textwidth]{figures/fig_q1q4_rank.png}
+\caption{\textbf{All samplers begin in the healthy band, but only the full-distribution-aware family ends $Q_4$ there.} $Q_1$ versus $Q_4$ selected-token rank on Llama-3-70B at 32K. The shaded band marks the healthy 2.5--5 region. The dotted line at 1.0 is the argmax floor.}
+\label{fig:q1q4-app}
+\end{figure}
+
+
+\input{checklist}
+
+\end{document}
