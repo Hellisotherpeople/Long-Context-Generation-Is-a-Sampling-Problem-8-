@@ -55,7 +55,7 @@ def pool_table(exp, out):
 if __name__ == "__main__":
     os.makedirs(f"{H}/tables", exist_ok=True)
     meta = {}
-    for exp, temps in (("r1_16k", [1.0, 1.5, 2.0]), ("r2_nonfic16k", [1.0, 1.5])):
+    for exp, temps in (("r1_16k", [1.0, 1.5, 2.0]), ("r2_nonfic16k", [1.0, 1.5]), ("r4_mt", [1.0, 1.5, 2.0])):
         if os.path.exists(f"{H}/results/cr_{exp}.json"):
             meta[exp] = main_table(exp, temps, f"{H}/tables/cr_{exp}.tex")
             if os.path.exists(f"{H}/results/cr_pool_{exp}.txt"):
