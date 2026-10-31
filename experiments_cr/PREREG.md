@@ -33,3 +33,7 @@ New models vs Oct campaign: Qwen3.6-27B, Qwen3.8-27B; 2 samples; exp_reason2 sam
 
 ## R6 (2026-10-31): long-CoT coding, LiveCodeBench v6 (175 problems), thinking mode, 32K budget
 New models vs Oct campaign: Qwen3.6-27B, Qwen3.8-27B; 2 samples; exp_reason2 sampler grid. Primary: pass@1 (official tests, lcs.ana_lcb).
+
+### Amendment 2026-10-31 (after R5 outputs were read)
+The pre-registered R5 healthy-rate map is reported as primary. A second, post-hoc summary is added and labelled as such:
+the set of temperatures where mean judged window quality >= 4.0. Chosen after seeing the data, so it is descriptive only.
