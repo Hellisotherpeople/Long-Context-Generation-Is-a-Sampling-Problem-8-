@@ -18,3 +18,18 @@ R3a  Qwen3.5-9B, 7 samplers x T{1.0,1.5,2.0}, 100 instances, step limit 250.
 R3b  long-horizon variant: 6 samplers x T{1.0,1.5}, 50 instances, step limit 500, 262K ctx.
 R3c  scale variant: Gemma-4-31B-it, 7 samplers x T{1.0,1.5}, 50 instances.
 Primary: resolve rate (paired by instance; McNemar / sign test vs top-p 0.9 at same T). Secondary: loop, format error, steps.
+
+## R4 (2026-10-31): natural-length multi-turn continuation
+9 paper models (gpt-oss excluded), 8 fiction prompts, T{1.0,1.5,2.0}, 4K-token turns with "Continue." until 16K total, EOS allowed.
+Primary: judged window quality by depth and loop rate; natural stop count reported.
+
+## R5 (2026-10-31): healthy-region map
+4 models (Llama-1B, Qwen2.5-3B, Llama-8B, Qwen3.5-9B), 22 sampler settings x T{0.7..3.0} (7 values), forced 8K.
+Pre-registered definition: a cell is "healthy" if no terminal loop AND judge window coherence >= 6 at every window.
+Primary quantity: width of the healthy temperature interval per sampler setting.
+
+## R6 (2026-10-31): long-CoT agent-free coding, LiveCodeBench v6 (175 problems), thinking mode, 32K budget
+New models vs Oct campaign: Qwen3.6-27B, Qwen3.8-27B; 2 samples; exp_reason2 sampler grid. Primary: pass@1 (official tests).
+
+## R6 (2026-10-31): long-CoT coding, LiveCodeBench v6 (175 problems), thinking mode, 32K budget
+New models vs Oct campaign: Qwen3.6-27B, Qwen3.8-27B; 2 samples; exp_reason2 sampler grid. Primary: pass@1 (official tests, lcs.ana_lcb).

@@ -34,6 +34,30 @@ def main():
         for m in NONFIC_MODELS:
             job = core_job(m, "r2_nonfic16k", nonfiction_prompts(), cfgs, 16000, seeds=(1,))
             enqueue(f"r2_nonfic16k/{m}", job, MR.get(m)["tp"], a.prio + 2, MR.get(m)["path"])
+    elif a.wave == "r4":
+        # natural-length multi-turn continuation ("Continue."), EOS allowed, 16K total
+        cfgs = sampler_cfgs(SAMPLERS_SLIM, [1.0, 1.5, 2.0])
+        for m in PAPER_MODELS:
+            if m == "gpt-oss-120b":
+                continue
+            job = core_job(m, "r4_mt", fiction_prompts(1), cfgs, 16000, seeds=(1,))
+            for r in job["requests"]:
+                r["force_len"] = False
+                r["multiturn"] = {"turn_tokens": 4096, "total": 16000, "continue_msg": "Continue.", "max_turns": 24}
+            ml = min(MR.get(m)["ctx"], 16000 + 4096 + 2048)
+            job["max_len"] = ml - 1024
+            job["engine"]["max_model_len"] = ml
+            enqueue(f"r4_mt/{m}", job, MR.get(m)["tp"], a.prio + 15, MR.get(m)["path"])
+    elif a.wave == "r5":
+        # hyperparameter x temperature map for the healthy region (fiction, forced 8K, 3 small models)
+        HP = [("minp", "min_p", [0.02, 0.05, 0.1, 0.2, 0.3]), ("topp", "top_p", [0.8, 0.9, 0.95]),
+              ("nsigma", "top_nsigma", [0.5, 1.0, 1.5, 2.0, 3.0]), ("toph", "top_h", [0.2, 0.4, 0.6, 0.8]),
+              ("topk", "top_k", [10, 50, 200])]
+        samplers = [(f"{n}{v}", [[op, v]]) for n, op, vs in HP for v in vs] + [("pless", [["p_less", 0.0]]), ("temp", [])]
+        cfgs = sampler_cfgs(samplers, [0.7, 1.0, 1.3, 1.6, 2.0, 2.5, 3.0], greedy=False)
+        for m in ["llama3.2-1b", "qwen2.5-3b", "llama3.1-8b", "qwen3.5-9b"]:
+            job = core_job(m, "r5_hp", fiction_prompts(1), cfgs, 8000, seeds=(1,))
+            enqueue(f"r5_hp/{m}", job, 1, a.prio + 12, MR.get(m)["path"])
     else:
         raise SystemExit(a.wave)
 
