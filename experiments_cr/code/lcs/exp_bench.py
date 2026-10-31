@@ -21,6 +21,7 @@ RULES = [("temp", []), ("topk50", [["top_k", 50]]), ("topp0.9", [["top_p", 0.9]]
          ("toph0.4+k2", [["top_h", 0.4], ["keep_top", 2]]), ("pless+k2", [["p_less", 0.0], ["keep_top", 2]]),
          ("nsigma1+k2", [["top_nsigma", 1.0], ["keep_top", 2]])]
 SPEC = {
+    "arenawrite": {"temps": [1.0, 1.5, 2.0], "rules": [], "max_tokens": 16000, "max_len": 18432},
     "lbwrite": {"temps": [0.7, 1.0, 1.3], "rules": [r[0] for r in RULES], "max_tokens": 32000, "max_len": 34816},
     "wbench": {"temps": [0.7, 1.0, 1.3], "rules": ["topp0.9", "minp0.1", "toph0.4", "pless", "nsigma1", "pless+k2",
                                                     "nsigma1+k2", "temp"], "max_tokens": 12000, "max_len": 20480},
@@ -37,6 +38,10 @@ def load(name):
         return [{"pid": f"wb-{r['index']}", "prompt": r["query"],
                  "meta": {"domain1": r.get("domain1"), "domain2": r.get("domain2"), "checklist": r.get("checklist")}}
                 for r in rows if r.get("lang") == "en"]
+    if name == "arenawrite":   # Arena-Write (LongWriter-Zero, Wu et al. 2025/26): English prompts requiring >= 2000 words
+        rows = [json.loads(l) for l in open(f"{B}/THU-KEG__Arena-Write/Arena-Write-Data.jsonl")]
+        en = [r for r in rows if not any("\u4e00" <= c <= "\u9fff" for c in r["question"]) and r["length"] >= 2000]
+        return [{"pid": f"aw-{i}", "prompt": r["question"], "meta": {"type": r["type"], "length": r["length"]}} for i, r in enumerate(en)]
     raise SystemExit(name)
 
 
