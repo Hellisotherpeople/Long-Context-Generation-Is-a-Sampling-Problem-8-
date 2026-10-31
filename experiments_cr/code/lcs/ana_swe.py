@@ -59,9 +59,9 @@ def traj_row(path):
 
 def main():
     rows = []
-    for d in sorted(glob.glob(f"{H}/runs/swe/*/*/")):
+    for d in sorted(glob.glob(f"{H}/runs/*swe*/*/*/")):
         d = d.rstrip("/")
-        tag, cfg = d.split("/")[-2:]
+        exp, tag, cfg = d.split("/")[-3:]
         if tag.startswith("_") or not os.path.exists(f"{d}/preds.json"):
             continue
         rf = f"{d}/report.json" if os.path.exists(f"{d}/report.json") else f"{d}/report_partial.json"
@@ -76,16 +76,16 @@ def main():
                                                        "steps": np.nan, "n_actions": 0, "format_errors": 0, "cut_turns": 0,
                                                        "repeat_frac": np.nan, "max_consec": 0, "loop": False,
                                                        "peak_prompt": np.nan, "out_tokens": 0, "mean_turn_tokens": np.nan}
-            r.update(model=tag.replace("_think", ""), think=tag.endswith("_think"), config=cfg, instance=iid,
+            r.update(exp=exp, tag=tag, model=tag.split("_c")[0].replace("_think", ""), think=tag.endswith("_think"), config=cfg, instance=iid,
                      resolved=(iid in resolved) if iid in evaluated else np.nan)
             rows.append(r)
     df = pd.DataFrame(rows)
     os.makedirs(f"{H}/results", exist_ok=True)
-    df.to_parquet(f"{H}/results/swe_inst.parquet")
+    df.to_parquet(f"{H}/results/swe_inst.parquet"); df = df[df.exp != "swe"]
     df["submitted"] = (df.exit == "Submitted") & (df.patch_len > 0)
     df["ctx_overflow"] = df.exit.fillna("").str.contains("ContextWindow|context", case=False)
     df["step_limit"] = df.exit == "LimitsExceeded"
-    cells = df.groupby(["model", "think", "config"]).agg(
+    cells = df.groupby(["exp", "model", "think", "config"]).agg(
         n=("instance", "size"), resolved=("resolved", "mean"), submitted=("submitted", "mean"),
         loop=("loop", "mean"), step_limit=("step_limit", "mean"), ctx_overflow=("ctx_overflow", "mean"),
         format_err=("format_errors", "mean"), cut_turns=("cut_turns", "mean"), steps=("steps", "mean"),

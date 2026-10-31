@@ -19,7 +19,7 @@ H = os.path.expanduser("~/lcg-cr")
 
 def todo():
     out = []
-    for d in sorted(glob.glob(f"{H}/runs/swe/*/*/")):
+    for d in sorted(glob.glob(f"{H}/runs/*swe*/*/*/")):
         d = d.rstrip("/")
         if (os.path.exists(f"{d}/.agent_done") and os.path.exists(f"{d}/preds.json")
                 and not os.path.exists(f"{d}/.eval_done") and not os.path.exists(f"{d}/.eval_fail")):
@@ -30,7 +30,7 @@ def todo():
 def partial_todo(min_new=60):
     """Configs still running whose preds.json has grown by >= min_new since the last partial evaluation."""
     out = []
-    for d in sorted(glob.glob(f"{H}/runs/swe/*/*/")):
+    for d in sorted(glob.glob(f"{H}/runs/*swe*/*/*/")):
         d = d.rstrip("/")
         if d.split("/")[-2].startswith("_") or os.path.exists(f"{d}/.agent_done") or not os.path.exists(f"{d}/preds.json"):
             continue
@@ -48,7 +48,8 @@ def start(d, workers, partial=False):
     """Same run_id for partial and final evaluations: the harness skips instances that already have a report, so
     partial runs simply evaluate finished instances early."""
     tag, cfg = d.split("/")[-2:]
-    run_id = f"{tag}__{cfg}".replace("@", "_")
+    exp = d.rstrip("/").split("/")[-3]
+    run_id = f"{exp}__{tag}__{cfg}".replace("@", "_")
     preds = f"{d}/preds.json"
     if partial:
         snap = json.load(open(preds))
