@@ -47,17 +47,19 @@ def main(exps):
         if met.empty:
             print(exp, "no metrics"); continue
         if not win.empty:
-            first = win[win.start == 0].groupby("uid").j_overall.mean().rename("w_first")
-            last = win.sort_values("start").groupby("uid").j_overall.last().rename("w_last")
-            wmean = win.groupby("uid").j_overall.mean().rename("w_mean")
-            wcoh_min = win.groupby("uid").j_coherence.min().rename("w_coh_min")
-            met = met.join(first, on="uid").join(last, on="uid").join(wmean, on="uid").join(wcoh_min, on="uid")
+            K = ["model", "uid"]
+            first = win[win.start == 0].groupby(K).j_overall.mean().rename("w_first")
+            last = win.sort_values("start").groupby(K).j_overall.last().rename("w_last")
+            wmean = win.groupby(K).j_overall.mean().rename("w_mean")
+            wcoh_min = win.groupby(K).j_coherence.min().rename("w_coh_min")
+            met = met.join(first, on=K).join(last, on=K).join(wmean, on=K).join(wcoh_min, on=K)
         if not glo.empty:
-            met = met.join(glo.set_index("uid").j_overall.rename("g_overall"), on="uid")
+            met = met.join(glo.set_index(["model", "uid"]).j_overall.rename("g_overall"), on=["model", "uid"])
         cols = [c for c in ("loop", "q4rep10", "w_first", "w_last", "w_mean", "g_overall") if c in met]
         if "w_coh_min" in met:
             met["healthy"] = (~met.loop) & (met.w_coh_min >= 6)
             cols.append("healthy")
+        assert not met.duplicated(["model", "uid"]).any(), "duplicate generations after join"
         rows = []
         for (s, T), g in met.groupby(["sampler", "T"]):
             r = dict(sampler=s, T=T, n=len(g), n_models=g.model.nunique())
