@@ -155,6 +155,22 @@ First, at $T{=}1$ the adaptive rules are close to greedy decoding. \pless{} admi
 
 Second, the rules split by how the candidate set responds to temperature. The top-$n\sigma$ set is identical at every temperature by construction (Section~\ref{sec:method}), and its realized median stays at 1. Min-$p$ and \pless{} grow slowly (1 to 13 and 1 to 31 between $T{=}1$ and $T{=}2$). Top-H grows like a mass-based rule (1 to 54), and top-$p$ explodes to most of the vocabulary. The faster a rule's candidate set grows, the sooner temperature lets it escape loops, and the sooner it admits the noise tail that produces word salad. Top-H, despite reading a global statistic of the distribution, behaves like top-$p$ here, so ``full-distribution-aware'' does not describe a shared mechanism. What predicts behavior is the temperature response of the realized candidate set.
 
+\subsection{Where each sampler stays usable}
+\label{sec:map}
+
+Tables~\ref{tab:r1} and~\ref{tab:pool} fix one hyperparameter per rule. To check that the split is a property of the rules and not of those settings, we map 22 settings across seven temperatures from 0.7 to 3.0 on four models (Llama-3.2-1B, Qwen2.5-3B, Llama-3.1-8B, Qwen3.5-9B), with 32 forced 8K-token generations per cell (Figure~\ref{fig:map}).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_r5.pdf}
+\caption{\textbf{Only top-$n\sigma$ keeps its judged quality as temperature rises; every other family has a cliff whose position its hyperparameter moves.} Mean judged window quality (1--10) over four models and 32 forced 8K-token generations per point. Dotted gray: pure sampling. The horizontal line at 4.0 marks roughly the quality every rule reaches at $T{\le}1$.}
+\label{fig:map}
+\end{figure}
+
+Every family except top-$n\sigma$ has a cliff. Top-$p$ falls to the floor by $T{=}1.6$ at every $p$ we tried, and top-$k$ and Top-H follow within one or two steps. Min-$p$'s hyperparameter moves the cliff: $p{=}0.02$ collapses after $T{=}1$, $p{=}0.1$ after 1.6 and $p{=}0.3$ after 2.5, so min-$p$ can be tuned to survive any fixed temperature at the cost of a tighter candidate set at low temperature. Top-$n\sigma$ with $n\le1$ has no cliff in this range, holding a mean window quality of 4.2--4.8 from $T{=}0.7$ to $T{=}3.0$, exactly as its temperature invariance predicts. Larger $n$ admits more of the noise tail at every temperature and brings the cliff back ($n{=}3$ collapses after $T{=}1$).
+
+What no setting buys is a healthy long generation. Under the pre-registered definition, the best cell of the entire map is healthy in 31\% of generations (top-$n\sigma$ $n{=}1$ at $T{=}1.6$), and top-$n\sigma$ $n{=}1$ still ends in a terminal loop in 41--78\% of generations at every temperature. Top-$n\sigma$ widens the range of usable temperatures. It does not fix collapse at length.
+
 \subsection{Natural-length continuation and non-fiction}
 \label{sec:natural}
 % R2 / R4.
