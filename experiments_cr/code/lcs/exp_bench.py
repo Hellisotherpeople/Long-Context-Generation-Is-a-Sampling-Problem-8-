@@ -46,8 +46,14 @@ def main():
     ap.add_argument("--models", required=True)
     ap.add_argument("--samples", type=int, default=1)
     ap.add_argument("--prio", default="048")
+    ap.add_argument("--temps", default="")
+    ap.add_argument("--rules", default="")
     a = ap.parse_args()
-    sp = SPEC[a.bench]
+    sp = dict(SPEC[a.bench])
+    if a.temps:
+        sp["temps"] = [float(x) for x in a.temps.split(",")]
+    if a.rules:
+        sp["rules"] = a.rules.split(",")
     items = load(a.bench)
     rules = [r for r in RULES if r[0] in sp["rules"]]
     for model in a.models.split(","):

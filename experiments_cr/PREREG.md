@@ -49,3 +49,9 @@ removes the T cliff for top-p/Top-H, i.e. judged window quality at t=2.0 stays w
 ### R5b amendment: Ministral-3-8B failed to load in vLLM 0.30 (Mistral3ForConditionalGeneration inspect error); replaced by Qwen2.5-14B before any R5b output was read.
 ## R7b (2026-10-31): long-horizon SWE grid on Gemma-4-E4B-it, T{1.0,1.5}, same outcomes.
 ## R13 (2026-10-31): judge validation. R1 window task re-judged by GLM-4.5-Air (different family). Primary: Spearman rho with gpt-oss-120b on window overall, and whether the R1 sampler ordering by first/last window is preserved.
+
+## R14 (2026-10-31): established long-generation benchmarks (replacing reliance on bespoke prompts, at the user request).
+LongBench-Write (Bai et al., LongWriter, ICLR 2025; 60 EN prompts, 100-20K words required) on 8 models incl. 70B/120B/122B,
+and WritingBench (Wu et al., 2025; 555 EN queries) on 4 models. 7 SLIM samplers + greedy, T{1.0,1.5,2.0}, natural stopping.
+Primary: official LongBench-Write S_l and S_q (judge = gpt-oss-120b with the official rubric) and WritingBench critic score.
+Prediction (stated before running): no significant separation at T=1; at T=2 tail-admitting rules drop far more than top-nsigma.

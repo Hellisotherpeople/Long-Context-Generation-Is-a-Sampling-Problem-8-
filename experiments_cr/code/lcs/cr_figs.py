@@ -81,13 +81,14 @@ def fig_hero():
             m = g.groupby("pos").j_overall.mean()
             line(ax, m.index.values, m.values, k, label=False)
             ends.append((m.values[-1], k))
-        for y, k in spread_labels(ax, ends, 0.42):
-            ax.text(15.9, y, S[k][0], fontsize=6.8, va="center", color=S[k][1] if k != "temp" else INK2)
         ax.set_title(f"$T = {T:g}$", color=INK)
         ax.set_xlim(0, 15.6); ax.set_ylim(0.8, 5.4); ax.set_xticks([0, 4, 8, 12, 16])
         ax.set_xlabel("Position in generation (K tokens)")
     axes[0].set_ylabel("Judged window quality (1–10)")
-    fig.subplots_adjust(wspace=0.38)
+    handles = [mpl.lines.Line2D([], [], color=S[k][1], marker=S[k][2], mec="white", lw=1.6, ls=":" if k == "temp" else "-",
+                                label=S[k][0]) for k in ["nsigma1", "minp0.1", "pless", "toph0.4", "topk50", "topp0.9", "temp"]]
+    fig.legend(handles=handles, ncol=7, loc="upper center", bbox_to_anchor=(0.5, 1.07), fontsize=7.2, handlelength=1.8, columnspacing=1.2)
+    fig.subplots_adjust(wspace=0.12)
     save(fig, "fig_hero")
 
 
@@ -134,12 +135,15 @@ def fig_map():
             col = tuple(1 - (1 - c) * (0.30 + 0.70 * t) for c in base)
             g = q.loc[s]
             ax.plot(g.index, g.values, color=col, lw=1.4, marker=S[key][2], ms=3, mec="white", mew=0.4, zorder=3)
-            ax.text(g.index[-1] + 0.08, g.values[-1], s[len(pre):], fontsize=6, va="center", color=INK2)
+            ax.lines[-1].set_label(s[len(pre):])
         tq = q.loc["temp"]; ax.plot(tq.index, tq.values, color="#9a9993", ls=":", lw=1, zorder=2)
-        ax.set_title(title, color=S[key][1]); ax.set_xlim(0.6, 3.45); ax.set_xticks([1, 2, 3]); ax.set_xlabel("Temperature")
+        sym = {"topp": "p", "topk": "k", "toph": "\\alpha", "minp": "p", "nsigma": "n"}[pre]
+        ax.text(0.0, 1.005, f"${sym}$ = " + ", ".join(n[len(pre):] for n in names),
+                transform=ax.transAxes, fontsize=5.8, color=INK2, va="bottom")
+        ax.set_title(title, color=S[key][1], pad=10); ax.set_xlim(0.6, 3.1); ax.set_xticks([1, 2, 3]); ax.set_xlabel("Temperature")
         ax.set_ylim(0.8, 5.2)
-    axes[0].set_ylabel("Judged quality")
-    fig.subplots_adjust(wspace=0.22)
+    axes[0].set_ylabel("Judged quality (1–10)")
+    fig.subplots_adjust(wspace=0.12)
     save(fig, "fig_map")
 
 
@@ -161,8 +165,11 @@ def fig_tl():
         ax.set_title(S[k][0], color=c); ax.set_xticks([1, 2, 3]); ax.set_xlim(0.85, 3.15); ax.set_ylim(0.8, 5.2)
         ax.set_xlabel("Temperature")
     axes[0].set_ylabel("Judged quality")
-    axes[0].text(1.05, 1.15, "dashed: temperature first\nsolid: set fixed at $T{=}1$", fontsize=6.2, color=INK2)
-    fig.subplots_adjust(wspace=0.18)
+    axes[0].set_ylabel("Judged quality (1–10)")
+    h = [mpl.lines.Line2D([], [], color=INK2, ls="--", lw=1.4, marker="o", mfc="white", ms=3, label="Temperature first (standard)"),
+         mpl.lines.Line2D([], [], color=INK2, ls="-", lw=1.8, marker="o", mec="white", ms=3.5, label="Candidate set fixed at $T{=}1$, sample at $t$")]
+    fig.legend(handles=h, ncol=2, loc="upper center", bbox_to_anchor=(0.5, 1.1), fontsize=7.2)
+    fig.subplots_adjust(wspace=0.12)
     save(fig, "fig_tl")
 
 
@@ -183,7 +190,7 @@ def fig_swe():
             r = g[g.sampler == k].sort_values("T")
             if len(r): ax.plot(r["T"], 100 * r.resolved, color=S[k][1], marker=S[k][2], ms=4, mec="white", mew=0.5, lw=1.5, zorder=3)
         ax.set_title(title[(e, m)], fontsize=7.5); ax.set_xlabel("Temperature")
-        ax.set_xticks(sorted(g["T"].unique())); ax.set_ylim(-3, 70)
+        ax.set_xticks([1.0, 1.5, 2.0]); ax.set_xlim(0.9, 2.1); ax.set_ylim(-3, 70)
     axes[0][0].set_ylabel("SWE-bench Verified resolved (%)")
     handles = [mpl.lines.Line2D([], [], color=S[k][1], marker=S[k][2], mec="white", lw=1.5, label=S[k][0]) for k in ORDER]
     fig.legend(handles=handles, ncol=6, loc="lower center", bbox_to_anchor=(0.5, -0.12), fontsize=7, handlelength=1.6, columnspacing=1.1)
