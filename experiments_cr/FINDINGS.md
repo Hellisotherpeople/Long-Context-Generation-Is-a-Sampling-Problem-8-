@@ -26,3 +26,12 @@ median |C| at T = 1.0 / 1.5 / 2.0  (fraction of steps with a single candidate at
 - top-k 50    51 / 51 / 51 (argmax always kept, so 51 when argmax is outside the top 50 ties).
 Reading: the rule that matters is how |C| responds to temperature. Tight-at-T=1 rules (P-less, nsigma, min-p) are near-greedy
 and loop; T-growing rules escape loops only by admitting the noise tail.
+
+## R3 agentic coding, SWE-bench Verified, Qwen3.5-9B (interim: graded configs only; T=1.0 cells of R3a still running)
+Resolved / instances (official harness):
+- R3a, 100 instances, step limit 250, T=2.0: top-nsigma 51, P-less 50 | top-p 0, top-k 0, Top-H 0, pure sampling 0. Pure sampling at T=1.5: 0.
+- R3b long-horizon (50 instances, 500 steps, 262K ctx):
+  T=1.0: top-nsigma 26, Top-H 28, min-p 23, top-p 23, pure 23  (no separation at deployment temperature)
+  T=1.5: top-nsigma 26, min-p 24, Top-H 9, top-p 0, pure 0
+Reading: identical to the fiction mechanism. Temperature-growing rules break the agent completely at T>=1.5; rules whose
+pool stays tight keep their T=1.0 resolve rate. At T=1.0 rules are indistinguishable. Paired tests pending full grading.
