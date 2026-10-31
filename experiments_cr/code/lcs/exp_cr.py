@@ -74,6 +74,11 @@ def main():
         for m in ["llama3.2-1b", "qwen2.5-3b", "mistral-7b-v0.3", "llama3.1-8b"]:
             job = core_job(m, "r9_16k_s2", fiction_prompts(1), cfgs, 16000, seeds=(2,))
             enqueue(f"r9_16k_s2/{m}", job, 1, a.prio + 3, MR.get(m)["path"])
+    elif a.wave == "r9b":
+        cfgs = sampler_cfgs(SAMPLERS_SLIM, [1.0, 1.5, 2.0])
+        for m in ["qwen2.5-1.5b", "mistral-nemo-12b", "qwen2.5-14b", "qwen2.5-32b", "llama3.3-70b", "gpt-oss-120b"]:
+            job = core_job(m, "r9_16k_s2", fiction_prompts(1), cfgs, 16000, seeds=(2,))
+            enqueue(f"r9_16k_s2/{m}", job, MR.get(m)["tp"], a.prio, MR.get(m)["path"])
     else:
         raise SystemExit(a.wave)
 

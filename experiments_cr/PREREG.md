@@ -44,3 +44,4 @@ Qwen3.5-35B-A3B (MoE), 7 samplers x T{1.0,1.5,2.0}. Primary: paired sign test vs
 Top-H, min-p, P-less, top-k; 4 models, 8 fiction prompts, forced 8K. Prediction (stated before running): freezing the candidate set
 removes the T cliff for top-p/Top-H, i.e. judged window quality at t=2.0 stays within 1 point of T=1.0, unlike R5.
 ## R9 (2026-10-31): seed-2 replication of R1 on 4 models (Llama-1B, Qwen2.5-3B, Mistral-7B, Llama-8B).
+## R9b (2026-10-31): seed-2 replication of R1 extended to the other 6 paper models (same grid).
