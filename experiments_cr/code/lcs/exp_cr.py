@@ -58,6 +58,22 @@ def main():
         for m in ["llama3.2-1b", "qwen2.5-3b", "llama3.1-8b", "qwen3.5-9b"]:
             job = core_job(m, "r5_hp", fiction_prompts(1), cfgs, 8000, seeds=(1,))
             enqueue(f"r5_hp/{m}", job, 1, a.prio + 12, MR.get(m)["path"])
+    elif a.wave == "r8":
+        # mechanism ablation: candidate set decided at T=1, sampling at t ("temperature last")
+        base = [("topp0.9", [["top_p", 0.9]]), ("toph0.4", [["top_h", 0.4]]), ("minp0.1", [["min_p", 0.1]]),
+                ("pless", [["p_less", 0.0]]), ("topk50", [["top_k", 50]])]
+        cfgs = []
+        for n, ops in base:
+            for t in (1.5, 2.0, 3.0):
+                cfgs.append((f"{n}_tl@T{t}", {"T": 1.0, "ops": ops + [["temp_last", t]]}, n + "_tl", t))
+        for m in ["llama3.2-1b", "qwen2.5-3b", "llama3.1-8b", "qwen3.5-9b"]:
+            job = core_job(m, "r8_tl", fiction_prompts(1), cfgs, 8000, seeds=(1,))
+            enqueue(f"r8_tl/{m}", job, 1, a.prio, MR.get(m)["path"])
+    elif a.wave == "r9":
+        cfgs = sampler_cfgs(SAMPLERS_SLIM, [1.0, 1.5, 2.0])
+        for m in ["llama3.2-1b", "qwen2.5-3b", "mistral-7b-v0.3", "llama3.1-8b"]:
+            job = core_job(m, "r9_16k_s2", fiction_prompts(1), cfgs, 16000, seeds=(2,))
+            enqueue(f"r9_16k_s2/{m}", job, 1, a.prio + 3, MR.get(m)["path"])
     else:
         raise SystemExit(a.wave)
 

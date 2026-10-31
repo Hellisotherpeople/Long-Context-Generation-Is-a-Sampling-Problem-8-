@@ -37,3 +37,10 @@ New models vs Oct campaign: Qwen3.6-27B, Qwen3.8-27B; 2 samples; exp_reason2 sam
 ### Amendment 2026-10-31 (after R5 outputs were read)
 The pre-registered R5 healthy-rate map is reported as primary. A second, post-hoc summary is added and labelled as such:
 the set of temperatures where mean judged window quality >= 4.0. Chosen after seeing the data, so it is descriptive only.
+
+## R7 (2026-10-31): agentic scale replication. Long-horizon SWE grid (50 instances, 500 steps, 262K) on Qwen3.5-27B (dense) and
+Qwen3.5-35B-A3B (MoE), 7 samplers x T{1.0,1.5,2.0}. Primary: paired sign test vs top-p 0.9 at same T.
+## R8 (2026-10-31): mechanism ablation. Truncation computed at T=1, sampling at t in {1.5,2.0,3.0} ("temperature last") for top-p,
+Top-H, min-p, P-less, top-k; 4 models, 8 fiction prompts, forced 8K. Prediction (stated before running): freezing the candidate set
+removes the T cliff for top-p/Top-H, i.e. judged window quality at t=2.0 stays within 1 point of T=1.0, unlike R5.
+## R9 (2026-10-31): seed-2 replication of R1 on 4 models (Llama-1B, Qwen2.5-3B, Mistral-7B, Llama-8B).
