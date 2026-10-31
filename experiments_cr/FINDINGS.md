@@ -35,3 +35,20 @@ Resolved / instances (official harness):
   T=1.5: top-nsigma 26, min-p 24, Top-H 9, top-p 0, pure 0
 Reading: identical to the fiction mechanism. Temperature-growing rules break the agent completely at T>=1.5; rules whose
 pool stays tight keep their T=1.0 resolve rate. At T=1.0 rules are indistinguishable. Paired tests pending full grading.
+
+## BUG (found 2026-10-31): 5090 top-nsigma cells are invalid
+code/samplers_fda.py (copied from ~/long-context-rebuttal) computed sigma with std() over logits containing -inf padding
+-> NaN -> empty mask -> every step emits token 0 ("!!!!"). Affects ALL top-nsigma generations in E1 (Qwen3-4B, 84/84)
+and E2 (Qwen3-8B, 42/42), and the rebuttal's long_nonfic top-nsigma arm (12/12). Fixed (finite-only std, argmax kept)
+with a regression test. The H200 lcs/samplers.py already used a finite-only std; checked 240 H200 top-nsigma
+generations, none affected. E1/E2 top-nsigma cells are excluded from the paper.
+
+## R4 natural-length multi-turn (7 of 9 models judged; "Continue." turns of 4K, EOS allowed, 16K budget)
+results/cr_r4_mt.txt. At T=1.0 loop rates drop vs forced length (top-p 0.56, top-k 0.29, pure 0.07, top-nsigma 0.51,
+min-p 0.73, Top-H 0.73, P-less 0.88) and last-window quality rises to 3.5-3.9 for all; still no separation (CIs overlap).
+At T=1.5-2.0 the same split as R1: top-p/top-k/Top-H/pure collapse to 1.0-2.0 first-window, top-nsigma holds 5.1-5.3.
+P-less loops most at every T (0.84-0.88 at T<=1.5).
+
+## E1 Qwen3-4B-2507 (5090, 14 prompts x 2 seeds, forced 16K), excluding invalid top-nsigma
+First window high (7.6-8.0) for every rule at T=1.0, last window 1.5-2.0: same collapse. top-p first window 3.0 at T=1.5,
+1.0 at T=2.0; min-p and P-less hold first-window 7.6-7.9 through T=2.0 on this model.
