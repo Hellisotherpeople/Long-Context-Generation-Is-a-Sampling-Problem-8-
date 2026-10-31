@@ -113,12 +113,12 @@ L[p] = \sum_{v \in V} p(v)^2,
 $L[p]$ is the probability that two independent samples from $p$ collide, which is also the exponential of the negative R\'enyi entropy of order 2~\citep{tan2025pless}. As the distribution becomes flatter (higher entropy), $L[p]$ shrinks and \pless{} admits more tokens. As it sharpens, $L[p]$ grows and the candidate pool tightens. \pless{} requires no hyperparameters and always presents non-empty candidate sets.
 
 \paragraph{Top-$n\sigma$ sampling.}
-Top-$n\sigma$~\citep{tang2024topnsigma} computes the mean $\mu$ and standard deviation $\sigma$ of the logit vector $\mathbf{z} \in \mathbb{R}^{|V|}$ and retains only tokens whose logits exceed a fixed threshold:
+Top-$n\sigma$~\citep{tang2024topnsigma} computes the standard deviation $\sigma(\mathbf{z})$ of the logit vector $\mathbf{z} \in \mathbb{R}^{|V|}$ and retains every token within $n$ standard deviations of the maximum logit:
 \begin{equation}
-\mathcal{C}_{\text{n-sigma}} = \{v \in V : z_v > \mu + n \cdot \sigma\}.
+\mathcal{C}_{\text{n-sigma}} = \{v \in V : z_v \ge \max_{u} z_u - n \cdot \sigma(\mathbf{z})\}.
 \label{eq:nsigma}
 \end{equation}
-This operates in pre-softmax logit space and exploits the empirical observation that informative logits separate from a Gaussian noise tail. We use $n{=}1$ throughout.
+This operates in pre-softmax logit space and exploits the empirical observation that informative logits separate from a Gaussian noise tail. Because dividing $\mathbf{z}$ by a temperature $T$ scales both $\max_u z_u$ and $\sigma(\mathbf{z})$ by the same factor, the candidate set is identical at every temperature~\citep{tang2024topnsigma}. We use $n{=}1$ throughout.
 
 \paragraph{Top-H sampling.}
 Top-H~\citep{baghaei2025toph} casts truncation as an entropy-constrained mass-maximization problem. It greedily admits tokens in descending probability order until the entropy of the truncated set reaches a target fraction $\alpha$ of the full-distribution entropy $H(p)$. We use $\alpha{=}0.4$ throughout.
