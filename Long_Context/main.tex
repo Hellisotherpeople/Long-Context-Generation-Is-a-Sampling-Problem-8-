@@ -174,6 +174,23 @@ Every family except top-$n\sigma$ has a cliff. Top-$p$ falls to the floor by $T{
 
 What no setting buys is a healthy long generation. Under the pre-registered definition, the best cells of the entire map are healthy in 31\% of generations (top-$n\sigma$ $n{=}1$ at $T{=}1.6$ and Top-H $\alpha{=}0.8$ at $T{=}1$), and top-$n\sigma$ $n{=}1$ still ends in a terminal loop in 41--78\% of generations at every temperature. Top-$n\sigma$ widens the range of usable temperatures. It does not fix collapse at length.
 
+\subsection{Fixing the candidate set removes the cliff, when the set excludes the tail}
+\label{sec:ablation}
+
+If temperature hurts temperature-growing rules because it changes \emph{which} tokens are admitted, then deciding the candidate set at $T{=}1$ and applying temperature only inside it should remove the cliff. We pre-registered this prediction for top-$p$ and Top-H (judged quality at $t{=}2$ within one point of $T{=}1$) and tested it for five rules on the four models of Figure~\ref{fig:map} (Table~\ref{tab:tl}, 32 generations per cell).
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Deciding the candidate set at $T{=}1$ rescues Top-H, min-$p$ and \pless{} at high temperature, but not top-$p$ or top-$k$.} Mean judged window quality (1--10), four models, 32 forced 8K-token generations per cell. Temperature first: the standard order (Figure~\ref{fig:map}). Candidate set fixed at $T{=}1$: truncation on the untempered distribution, then sampling at temperature $t$ inside the kept set.}
+\label{tab:tl}
+\small
+\input{tables/cr_r8.tex}
+\end{table}
+
+The prediction holds for Top-H, and also for min-$p$ and \pless{}. With the candidate set fixed at $T{=}1$, all three keep their $T{=}1$ quality through $t{=}3$ (4.1--4.6), where the standard order has collapsed them to 1.1--1.2. The prediction fails for top-$p$, which improves (2.6 against 1.0 at $T{=}3$) but stays far below its $T{=}1$ quality of 4.7, and top-$k$ does not improve at all. Both failures have the same cause, visible in Table~\ref{tab:pool}. Top-$k$ admits 50 tokens at every step, including steps where the model is nearly certain, and top-$p$ at $T{=}1$ admits a median of 2 tokens but a mean of 73, because at uncertain steps it reaches deep into the tail to cover 90\% of the mass. Once those tail tokens are in the set, any temperature above 1 promotes them.
+
+The refined mechanism is therefore about the tail, not about temperature as such. A rule survives elevated temperature if its candidate set excludes low-probability tokens at the temperature that actually shapes the distribution. Temperature invariance (top-$n\sigma$) guarantees this by construction, fixing a tail-excluding set at $T{=}1$ achieves it for any rule with a tight $T{=}1$ set, and rules whose set contains the tail at $T{=}1$ cannot be rescued by reordering. The price of keeping the tail out is the same in every case. The rescued rules still loop, in 19\%, 50\% and 91\% of generations at $t{=}3$ for Top-H, min-$p$ and \pless{}.
+
 \subsection{Natural-length continuation and non-fiction}
 \label{sec:natural}
 
