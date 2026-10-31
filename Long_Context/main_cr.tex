@@ -34,7 +34,7 @@
 
 
 \begin{abstract}
-Long-form generation in open-weight language models collapses into repetition well before the context limit. We ask how much of that collapse the sampler controls. We rerun the full study from scratch in bf16 on ten instruction-tuned models from 1B to 120B parameters, adding natural-length continuation, non-fiction, a temperature-by-hyperparameter map, and long-horizon agentic coding on SWE-bench Verified. Two findings hold across every model. First, at the temperatures most systems ship, no truncation rule prevents collapse: forced to 16K tokens at $T{=}1$, top-$p$, min-$p$, P-less, Top-H and top-$n\sigma$ all end in a terminal loop in more than 95\% of generations, and a judge cannot separate them. Second, the sampler decides what happens once the temperature is raised to escape that loop, and a single measurable property predicts the outcome: how the realized candidate set responds to temperature. Rules whose candidate set grows with $T$ (top-$p$, top-$k$, Top-H) escape loops by admitting the noise tail and degrade into word salad, while top-$n\sigma$, whose candidate set is provably temperature invariant, keeps its local quality at $T{=}2$. We also correct the top-$n\sigma$ rule as stated in prior versions of this work and show that the commonly grouped ``full-distribution-aware'' samplers do not share a mechanism. Long-context generation is a sampling problem in a precise sense: sampling cannot rescue a model that wants to loop, but it determines whether the model survives the flattened distributions that long, high-temperature and agentic generation produce.
+Long generations from open-weight language models collapse into repetition well before the context limit. We ask how much of that collapse the sampler controls, and rerun the question from scratch on ten models from 1B to 120B parameters, with forced and natural-length fiction, non-fiction, a map of 22 sampler settings across seven temperatures, and long-horizon agentic coding on SWE-bench Verified. At the temperature most systems ship, the sampler does not matter. Forced to 16K tokens at $T{=}1$, top-$p$, min-$p$, Top-H, P-less and top-$n\sigma$ all end in a terminal loop in more than 95\% of generations, a judge cannot separate them, and no rule beats top-$p$ on agentic coding. Above that temperature, the sampler decides almost everything, and one measurable property predicts the outcome: how the candidate set each rule actually admits responds to temperature. Rules whose candidate set grows with temperature escape loops only by admitting the noise tail. Top-$p$, top-$k$ and Top-H turn into word salad by $T{=}2$, and a coding agent that uses them resolves 0 of 100 issues. Top-$n\sigma$, whose candidate set is provably temperature invariant, keeps its judged quality up to $T{=}3$ and resolves 51. The rules usually grouped as ``full-distribution-aware'' do not share this property, and Top-H behaves like top-$p$. Sampling cannot rescue a model that wants to loop, but it decides whether long and agentic generation survive the flattened distributions they run into.
 \end{abstract}
 
 %% ====================================================================
@@ -65,6 +65,9 @@ Temperature scaling divides logits by $T$ before the softmax~\citep{ackley1985le
 
 \paragraph{Text degeneration and repetition.}
 Neural text generation is prone to repetition during extended generation~\citep{holtzman2020curious,welleck2020neural,fu2021theoretical}. Repetition penalties~\citep{keskar2019ctrl}, diversity objectives~\citep{li2016diversity}, the DRY penalty~\citep{weidmann2024dry} and contrastive search~\citep{su2022contrastive,su2023contrastive} target the same symptom. We study the base truncation rule.
+
+\paragraph{Sampler evaluation.}
+A controlled thirteen-model study finds that truncation samplers change accuracy mainly when high temperature degrades a model, and little at deployed defaults~\citep{larosa2026fragility}. Our long-context results agree and add the mechanism.
 
 \paragraph{Long-context evaluation.}
 Long-context capability is usually measured through retrieval and comprehension~\citep{bai2024longbench,hsieh2024ruler,shaham2023zeroscrolls}, while LongWriter~\citep{bai2025longwriter} probes length-following. LLM-as-judge evaluation~\citep{zheng2023judging,li2024generative} makes it practical to score long outputs window by window.
@@ -128,7 +131,7 @@ Table~\ref{tab:r1} reports the forced-length replication on all ten models. At $
 
 \begin{table}[t]
 \centering
-\caption{\textbf{Forced to 16K tokens, every sampler collapses at $T{=}1$; raising $T$ changes how each one fails.} Ten models, eight fiction genres, seed 1, about 70 generations per cell. Loop: fraction of generations ending in a terminal loop. First / Last: judge overall score (1--10) for the first and final 1.5K-token windows.}
+\caption{\textbf{Forced to 16K tokens, every sampler collapses at $T{=}1$. Raising $T$ changes how each one fails.} Ten models, eight fiction genres, seed 1, about 70 generations per cell. Loop: fraction of generations ending in a terminal loop. First / Last: judge overall score (1--10) for the first and final 1.5K-token windows.}
 \label{tab:r1}
 \small
 \input{tables/cr_r1_16k.tex}
@@ -163,7 +166,7 @@ Tables~\ref{tab:r1} and~\ref{tab:pool} fix one hyperparameter per rule. To check
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig_r5.pdf}
-\caption{\textbf{Only top-$n\sigma$ keeps its judged quality as temperature rises; every other family has a cliff whose position its hyperparameter moves.} Mean judged window quality (1--10) over four models and 32 forced 8K-token generations per point. Dotted gray: pure sampling. The horizontal line at 4.0 marks roughly the quality every rule reaches at $T{\le}1$.}
+\caption{\textbf{Only top-$n\sigma$ keeps its judged quality as temperature rises. Every other family has a cliff, and its hyperparameter only moves it.} Mean judged window quality (1--10) over four models and 32 forced 8K-token generations per point. Dotted gray: pure sampling. The horizontal line at 4.0 marks roughly the quality every rule reaches at $T{\le}1$.}
 \label{fig:map}
 \end{figure}
 
@@ -195,7 +198,7 @@ Agentic coding is long-context generation in its most practical form. The model 
 
 \begin{table}[t]
 \centering
-\caption{\textbf{At $T{=}1$ no sampler beats top-$p$ on long-horizon agentic coding; at $T{=}1.5$ temperature-growing rules break the agent and tight rules do not.} SWE-bench Verified, Qwen3.5-9B, mini-swe-agent with a 500-step limit and 262K context, 50 fixed instances. Resolved: fraction of instances whose patch passes the official tests. W/L: instances resolved by the sampler but not by top-$p$ 0.9 at the same $T$, and the reverse. $^{*}$: two-sided sign test $p<0.05$.}
+\caption{\textbf{At $T{=}1$ no sampler beats top-$p$ on long-horizon agentic coding. At $T{=}1.5$ temperature-growing rules break the agent and tight rules do not.} SWE-bench Verified, Qwen3.5-9B, mini-swe-agent with a 500-step limit and 262K context, 50 fixed instances. Resolved: fraction of instances whose patch passes the official tests. W/L: instances resolved by the sampler but not by top-$p$ 0.9 at the same $T$, and the reverse. $^{*}$: two-sided sign test $p<0.05$.}
 \label{tab:swe}
 \small
 \input{tables/cr_swe_r3b_swelong.tex}
@@ -277,7 +280,7 @@ The replication spans ten open-weight models from 1B to 120B parameters, and the
 Forced-length generation is an artificial stress. We therefore also report natural-length continuation (Section~\ref{sec:natural}), which reduces loop rates but leaves the conclusions unchanged.
 
 \paragraph{Corrections to earlier versions.}
-An earlier version of this paper stated the top-$n\sigma$ threshold incorrectly, reported a human evaluation that was not carried out, and contained figures and tables that were not produced from experiments. All of these have been removed. Every number in this version is generated by scripts from the released runs. During the rerun we also found that one of our own auxiliary implementations computed $\sigma(\mathbf{z})$ over logits containing $-\infty$ padding, producing an empty candidate set; the affected runs (the Qwen3-4B and Qwen3-8B sweeps' top-$n\sigma$ cells) are excluded, and the main implementation was verified to be unaffected.
+An earlier version of this paper stated the top-$n\sigma$ threshold incorrectly, reported a human evaluation that was not carried out, and contained figures and tables that were not produced from experiments. All of these have been removed. Every number in this version is generated by scripts from the released runs. During the rerun we also found that one of our own auxiliary implementations computed $\sigma(\mathbf{z})$ over logits containing $-\infty$ padding, producing an empty candidate set. The affected runs (the top-$n\sigma$ cells of the Qwen3-4B and Qwen3-8B sweeps) are excluded, and the main implementation was verified to be unaffected.
 
 \paragraph{Implementation.}
 All samplers run as one unfused vLLM logits processor. We do not measure latency.

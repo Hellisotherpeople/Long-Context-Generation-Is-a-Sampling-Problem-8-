@@ -10,10 +10,9 @@
  },
  "r2_nonfic16k": {
   "n_per_cell": [
-   36,
-   37
+   48
   ],
-  "n_models": 5
+  "n_models": 6
  },
  "r4_mt": {
   "n_per_cell": [
