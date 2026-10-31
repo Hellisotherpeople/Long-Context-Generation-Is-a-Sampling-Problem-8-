@@ -1,0 +1,13 @@
+\begin{tabular}{lccc}
+\toprule
+Sampler & $T{=}1.0$ & $T{=}1.5$ & Singleton at $T{=}1$ \\
+\midrule
+Pure sampling & all & all & 0.00 \\
+Top-$k$ 50 & 50 & 51 & 0.00 \\
+Top-$p$ 0.9 & 1 & 29,196 & 0.61 \\
+Min-$p$ 0.1 & 1 & 2 & 0.68 \\
+Top-H 0.4 & 1 & 6 & 0.71 \\
+\pless{} & 1 & 1 & 0.95 \\
+Top-$n\sigma$ 1 & 1 & 1 & 0.64 \\
+\bottomrule
+\end{tabular}

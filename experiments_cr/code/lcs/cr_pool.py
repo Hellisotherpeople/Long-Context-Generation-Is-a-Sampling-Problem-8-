@@ -13,6 +13,6 @@ for f in glob.glob(f"{H}/runs/{exp}/*/stats/*.npz"):
 d = pd.DataFrame(rows)
 g = d.groupby(["sampler", "T"]).agg(mean_kept=("mean", "mean"), median_kept=("med", "median"), single_frac=("single", "mean"), n=("mean", "size")).round(2).reset_index()
 w = g.pivot(index="sampler", columns="T", values="mean_kept")
-w["growth_2.0/1.0"] = (w.get(2.0) / w.get(1.0)).round(1)
+top = max(w.columns); w[f"growth_{top}/1.0"] = (w[top] / w[1.0]).round(1) if 1.0 in w and top != 1.0 else None
 txt = g.to_string(index=False) + "\n\nmean kept by T:\n" + w.to_string()
 open(f"{H}/results/cr_pool_{exp}.txt", "w").write(txt + "\n"); print(txt)
