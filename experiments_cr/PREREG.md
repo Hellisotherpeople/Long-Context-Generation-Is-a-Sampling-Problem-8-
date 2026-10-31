@@ -45,3 +45,5 @@ Top-H, min-p, P-less, top-k; 4 models, 8 fiction prompts, forced 8K. Prediction 
 removes the T cliff for top-p/Top-H, i.e. judged window quality at t=2.0 stays within 1 point of T=1.0, unlike R5.
 ## R9 (2026-10-31): seed-2 replication of R1 on 4 models (Llama-1B, Qwen2.5-3B, Mistral-7B, Llama-8B).
 ## R9b (2026-10-31): seed-2 replication of R1 extended to the other 6 paper models (same grid).
+## R5b (2026-10-31): R5 map replicated on 4 further families (Gemma-4-12B, OLMo-3-7B, Ministral-3-8B, Nemotron-3-4B), same grid and outcomes; written before any R5b output.
+### R5b amendment: Ministral-3-8B failed to load in vLLM 0.30 (Mistral3ForConditionalGeneration inspect error); replaced by Qwen2.5-14B before any R5b output was read.

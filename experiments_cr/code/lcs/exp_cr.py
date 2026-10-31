@@ -19,6 +19,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("wave")
     ap.add_argument("--prio", type=int, default=20)
+    ap.add_argument("--models", default="")
     a = ap.parse_args()
     if a.wave == "r1":
         cfgs = sampler_cfgs(SAMPLERS_SLIM, [1.0, 1.5, 2.0])
@@ -55,7 +56,7 @@ def main():
               ("topk", "top_k", [10, 50, 200])]
         samplers = [(f"{n}{v}", [[op, v]]) for n, op, vs in HP for v in vs] + [("pless", [["p_less", 0.0]]), ("temp", [])]
         cfgs = sampler_cfgs(samplers, [0.7, 1.0, 1.3, 1.6, 2.0, 2.5, 3.0], greedy=False)
-        for m in ["llama3.2-1b", "qwen2.5-3b", "llama3.1-8b", "qwen3.5-9b"]:
+        for m in (a.models.split(",") if a.models else ["llama3.2-1b", "qwen2.5-3b", "llama3.1-8b", "qwen3.5-9b"]):
             job = core_job(m, "r5_hp", fiction_prompts(1), cfgs, 8000, seeds=(1,))
             enqueue(f"r5_hp/{m}", job, 1, a.prio + 12, MR.get(m)["path"])
     elif a.wave == "r8":
