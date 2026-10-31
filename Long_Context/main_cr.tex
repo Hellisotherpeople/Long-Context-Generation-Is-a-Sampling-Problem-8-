@@ -123,11 +123,37 @@ A generation has a \emph{terminal loop} if, from some 1K-token window onward, at
 
 \subsection{At deployment temperature, no sampler prevents collapse}
 \label{sec:r1}
-% R1 table and text go here once all ten models are judged.
+
+Table~\ref{tab:r1} reports the forced-length replication on all ten models. At $T{=}1$ every truncation rule loops. Top-$p$, min-$p$, Top-H, \pless{} and top-$n\sigma$ end in a terminal loop in 96--100\% of generations, the same rate as greedy decoding. The judge scores the opening window of each between 4.2 and 4.6 and the final window between 2.4 and 2.6 out of 10 (rounded), with overlapping bootstrap intervals, so the rules cannot be separated on quality. Only pure sampling and top-$k$, the two rules that keep a wide candidate set at every step, loop less often (39\% and 53\%), and they do not end any better (final window 2.2 and 2.6). Under our pre-registered definition, which requires no terminal loop and judged coherence of at least 6 in every window, no cell at $T{=}1$ contains a single healthy generation.
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Forced to 16K tokens, every sampler collapses at $T{=}1$; raising $T$ changes how each one fails.} Ten models, eight fiction genres, seed 1, about 70 generations per cell. Loop: fraction of generations ending in a terminal loop. First / Last: judge overall score (1--10) for the first and final 1.5K-token windows.}
+\label{tab:r1}
+\small
+\input{tables/cr_r1_16k.tex}
+\end{table}
+
+Raising the temperature is the obvious way to break a loop. At $T{=}2$ it removes loops almost completely for top-$p$, top-$k$, Top-H, pure sampling and min-$p$ (0--9\%), only partly for \pless{} (41\%), and least of all for top-$n\sigma$ (72\%). The rules diverge in what they give up to get there. At $T{=}2$, top-$p$, top-$k$, Top-H and pure sampling stop looping entirely, and their first-window score falls to 1.0--1.8, because the text is now word salad from the opening paragraph. Min-$p$ and \pless{} fall partway, to 3.0 and 2.9. Top-$n\sigma$ is the only rule whose first-window score is unchanged between $T{=}1$ and $T{=}2$ (4.6 in both), and it still loops in 72\% of generations at $T{=}2$. Non-fiction shows the same pattern (Appendix~\ref{app:nonfic}).
+
+The sampler therefore does not decide \emph{whether} a forced long generation survives. It decides \emph{how} the generation fails once temperature is used to escape the loop.
 
 \subsection{The temperature response of the candidate set}
 \label{sec:mechanism}
-% cr_pool table goes here.
+
+Table~\ref{tab:pool} reports the median number of tokens each rule actually admits per step, measured by the logits processor over the first 2,048 generated tokens, before loops set in. Two facts explain Table~\ref{tab:r1}.
+
+\begin{table}[t]
+\centering
+\caption{\textbf{How the realized candidate set responds to temperature predicts how each sampler fails.} Median candidate-set size per decoding step over the first 2,048 tokens of the Table~\ref{tab:r1} generations (ten models). Singleton: fraction of steps at $T{=}1$ where only one token is admitted.}
+\label{tab:pool}
+\small
+\input{tables/cr_pool_r1_16k.tex}
+\end{table}
+
+First, at $T{=}1$ the adaptive rules are close to greedy decoding. \pless{} admits a single token on 93\% of steps, and min-$p$, Top-H and top-$n\sigma$ on 54--62\%. A rule that keeps one candidate cannot break a loop no matter how it chose that candidate, which is why their loop rates match greedy.
+
+Second, the rules split by how the candidate set responds to temperature. The top-$n\sigma$ set is identical at every temperature by construction (Section~\ref{sec:method}), and its realized median stays at 1. Min-$p$ and \pless{} grow slowly (1 to 13 and 1 to 31 between $T{=}1$ and $T{=}2$). Top-H grows like a mass-based rule (1 to 54), and top-$p$ explodes to most of the vocabulary. The faster a rule's candidate set grows, the sooner temperature lets it escape loops, and the sooner it admits the noise tail that produces word salad. Top-H, despite reading a global statistic of the distribution, behaves like top-$p$ here, so ``full-distribution-aware'' does not describe a shared mechanism. What predicts behavior is the temperature response of the realized candidate set.
 
 \subsection{Natural-length continuation and non-fiction}
 \label{sec:natural}
@@ -145,6 +171,18 @@ A generation has a \emph{terminal loop} if, from some 1K-token window onward, at
 %% ====================================================================
 \newpage
 \appendix
+
+\section{Non-fiction at 16K}
+\label{app:nonfic}
+
+The forced-length protocol of Table~\ref{tab:r1} applied to six non-fiction prompts on five models (Llama-3.2-1B, Qwen2.5-3B, Llama-3.1-8B, Qwen3.5-9B, Gemma-4-31B).
+
+\begin{table}[h]
+\centering
+\small
+\input{tables/cr_r2_nonfic16k.tex}
+\end{table}
+
 
 \section{Limitations}
 \label{sec:limitations}
