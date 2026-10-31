@@ -80,6 +80,27 @@ def main():
         for m in ["qwen2.5-1.5b", "mistral-nemo-12b", "qwen2.5-14b", "qwen2.5-32b", "llama3.3-70b", "gpt-oss-120b"]:
             job = core_job(m, "r9_16k_s2", fiction_prompts(1), cfgs, 16000, seeds=(2,))
             enqueue(f"r9_16k_s2/{m}", job, MR.get(m)["tp"], a.prio, MR.get(m)["path"])
+    elif a.wave == "r10":
+        # large / modern models on the R1 grid (fiction, forced 16K, seed 1)
+        cfgs = sampler_cfgs(SAMPLERS_SLIM, [1.0, 1.5, 2.0])
+        for m in ["qwen3.5-122b-a10b", "glm4.5-air", "qwen3.5-27b", "gemma4-31b", "olmo3.1-32b", "nemotron3-30b-a3b"]:
+            job = core_job(m, "r1_16k", fiction_prompts(1), cfgs, 16000, seeds=(1,))
+            enqueue(f"r1_16k/{m}", job, MR.get(m)["tp"], a.prio, MR.get(m)["path"])
+    elif a.wave == "r11":
+        # sampling stacks: truncation rule + DRY, and + top-2 floor (fiction, forced 16K)
+        DRY = {"mult": 0.8, "base": 1.75, "allowed": 2}
+        rules = [("topp0.9", [["top_p", 0.9]]), ("minp0.1", [["min_p", 0.1]]), ("nsigma1", [["top_nsigma", 1.0]]),
+                 ("pless", [["p_less", 0.0]]), ("toph0.4", [["top_h", 0.4]])]
+        cfgs = []
+        for n, ops in rules:
+            for T in (1.0, 1.5, 2.0):
+                cfgs.append((f"dry+{n}@T{T}", {"T": T, "ops": ops, "dry": DRY}, f"dry+{n}", T))
+                cfgs.append((f"k2+{n}@T{T}", {"T": T, "ops": ops + [["keep_top", 2]]}, f"k2+{n}", T))
+        for T in (1.0,):
+            cfgs.append((f"dry+temp@T{T}", {"T": T, "ops": [], "dry": DRY}, "dry+temp", T))
+        for m in ["llama3.2-1b", "qwen2.5-3b", "mistral-7b-v0.3", "llama3.1-8b", "mistral-nemo-12b", "qwen2.5-14b", "llama3.3-70b", "gpt-oss-120b"]:
+            job = core_job(m, "r11_stack", fiction_prompts(1), cfgs, 16000, seeds=(1,))
+            enqueue(f"r11_stack/{m}", job, MR.get(m)["tp"], a.prio, MR.get(m)["path"])
     else:
         raise SystemExit(a.wave)
 

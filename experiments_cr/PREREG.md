@@ -48,3 +48,4 @@ removes the T cliff for top-p/Top-H, i.e. judged window quality at t=2.0 stays w
 ## R5b (2026-10-31): R5 map replicated on 4 further families (Gemma-4-12B, OLMo-3-7B, Ministral-3-8B, Nemotron-3-4B), same grid and outcomes; written before any R5b output.
 ### R5b amendment: Ministral-3-8B failed to load in vLLM 0.30 (Mistral3ForConditionalGeneration inspect error); replaced by Qwen2.5-14B before any R5b output was read.
 ## R7b (2026-10-31): long-horizon SWE grid on Gemma-4-E4B-it, T{1.0,1.5}, same outcomes.
+## R13 (2026-10-31): judge validation. R1 window task re-judged by GLM-4.5-Air (different family). Primary: Spearman rho with gpt-oss-120b on window overall, and whether the R1 sampler ordering by first/last window is preserved.

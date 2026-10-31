@@ -15,7 +15,7 @@ import time
 
 H = os.path.expanduser("~/lcg-cr")
 STATE = f"{H}/queue/autopost.json"
-WINDOW = ("r8_tl", "r9_16k_s2", "r1_16k", "r1_32k", "r2_nonfic16k", "r4_mt", "r5_hp", "core32k", "mt32k", "mtk2_32k", "mt32k_hp", "mt32k_hp2", "book32k", "bookk2", "bookpen", "capx", "k2_32k", "pen32k", "mtpen32k",
+WINDOW = ("r11_stack", "depth-native", "r8_tl", "r9_16k_s2", "r1_16k", "r1_32k", "r2_nonfic16k", "r4_mt", "r5_hp", "core32k", "mt32k", "mtk2_32k", "mt32k_hp", "mt32k_hp2", "book32k", "bookk2", "bookpen", "capx", "k2_32k", "pen32k", "mtpen32k",
           "ext32k", "depth-native", "depth-yarn")
 DENSE = ("long256k", "long1000k")
 TAIL = ("rescue", "rescue_mt")       # 4K continuations: judge the final 1.5K tokens
