@@ -161,7 +161,7 @@ def main(spec_path):
                     if task == "tail":   # the last WIN_LEN tokens of each text (short continuations, e.g. loop rescue)
                         starts = (max(0, len(toks) - WIN_LEN),)
                     else:
-                        starts = WIN_STARTS if task == "window" else tuple(range(0, max(1, len(toks) - 512), 4096))
+                        starts = ((0, 4096, 8192, 12288, max(0, len(toks) - WIN_LEN)) if len(toks) <= 20000 else WIN_STARTS) if task == "window" else tuple(range(0, max(1, len(toks) - 512), 4096))
                     for s in starts:
                         if s >= len(toks):
                             continue
