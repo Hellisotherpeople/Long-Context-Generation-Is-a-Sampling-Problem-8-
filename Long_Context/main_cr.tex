@@ -173,7 +173,20 @@ What no setting buys is a healthy long generation. Under the pre-registered defi
 
 \subsection{Natural-length continuation and non-fiction}
 \label{sec:natural}
-% R2 / R4.
+
+Forcing a model past the point where it wants to stop is an artificial stress, so we repeat the replication under a protocol closer to how long outputs are produced in practice. The model may emit end-of-sequence at any time, and each time it stops we append a ``Continue.'' turn, up to a 16K-token budget with 4K-token turns (Table~\ref{tab:r4}, seven of the nine models judged so far).
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Letting the model stop and continue halves the loop rate of several rules but still does not separate them at $T{=}1$.} Natural-length multi-turn continuation (``Continue.'' after each stop, 16K-token budget), seven models, eight fiction genres, about 42 generations per cell. Columns as in Table~\ref{tab:r1}.}
+\label{tab:r4}
+\small
+\input{tables/cr_r4_mt.tex}
+\end{table}
+
+Natural length helps every rule. At $T{=}1$ the final judged window rises from about 2.4 under forced length to 3.5--3.9, and the loop rate of top-$p$ falls from 0.96 to 0.56 and of top-$n\sigma$ from 1.00 to 0.51. The rules remain nearly inseparable on quality at $T{=}1$: final-window means span only 3.5--3.9, and of the 21 pairs of rules, only Top-H and top-$k$ have non-overlapping bootstrap intervals. \pless{} remains the most loop-prone rule at every temperature (0.84--0.88 at $T{\le}1.5$), consistent with its near-greedy candidate set. Raising the temperature reproduces the forced-length split almost exactly. At $T{=}2$, top-$p$, top-$k$, Top-H and pure sampling score 1.0--1.8 on their first window, min-$p$ and \pless{} fall to 2.7--2.8, and top-$n\sigma$ holds 5.1, while still looping in 36\% of generations.
+
+Non-fiction behaves the same way (Appendix~\ref{app:nonfic}, six models). At $T{=}1$ every rule ends at 3.3--3.6 on the final window, and at $T{=}1.5$ top-$p$ and top-$k$ fall to a first-window score of 3.1 and 4.4 while top-$n\sigma$ and min-$p$ hold theirs (6.3 to 6.6 and 6.3 to 6.5).
 
 \subsection{Agentic coding}
 \label{sec:agentic}
@@ -193,6 +206,31 @@ At $T{=}1$ the agentic result mirrors the fiction result. Every sampler resolves
 At $T{=}1.5$ the rules separate completely. Top-$p$ and pure sampling resolve nothing, because their actions degrade into malformed output within a few turns (mean episode length 16 and 7 steps, with 4--6 format errors per episode). Top-H keeps 18\%. Min-$p$, \pless{} and top-$n\sigma$ keep or exceed their $T{=}1$ rate (48\%, 58\% and 52\%) and beat top-$p$ on every instance where the two disagree (24--0, 29--0 and 26--0, all $p<10^{-6}$, two-sided sign test). On the 100-instance grid with a 250-step limit the same split holds at $T{=}2$: top-$p$, top-$k$, Top-H and pure sampling resolve 0 of 100 instances, min-$p$, whose candidate set grows more slowly, resolves 16, and top-$n\sigma$ and \pless{} resolve 51 and 50 (Appendix~\ref{app:swe}).
 
 Temperature is not a knob practitioners turn up for fun in agentic settings, but flattened distributions arrive anyway, through long and noisy contexts, unfamiliar tool output, and the sampling temperatures used for exploration in best-of-$n$ and reinforcement learning. The candidate-set response to temperature determines whether an agent survives that regime.
+
+
+%% ====================================================================
+\section{Discussion}
+\label{sec:discussion}
+%% ====================================================================
+
+\paragraph{What the sampler controls.}
+Across forced and natural length, fiction and non-fiction, ten models and an agentic coding harness, one pattern repeats. At the temperature most systems ship, the choice among top-$p$, min-$p$, Top-H, \pless{} and top-$n\sigma$ does not measurably change whether a long generation survives or whether an agent resolves an issue. Once the distribution is flattened, the choice decides almost everything. The variable that predicts which rules survive is not whether a rule reads a ``full-distribution'' statistic but how its realized candidate set responds to temperature.
+
+\paragraph{Why adaptivity does not prevent loops.}
+The adaptive rules do exactly what they claim: their candidate sets shrink when the model is confident. A repetition loop is a state of extreme confidence, so inside a loop these rules keep one token, and \pless{} at $T{=}1$ keeps one token on 93\% of steps even outside loops. Adaptivity is the right property for avoiding the noise tail and the wrong property for escaping a loop once it starts. The only escape route the samplers offer is temperature, and temperature is exactly where the rules split.
+
+\paragraph{Why temperature invariance matters.}
+A rule whose candidate set grows with $T$ couples two things a practitioner wants to control separately: how much randomness to inject among plausible tokens, and how far into the implausible tail to reach. Top-$n\sigma$ decouples them, which is why it is the only rule in Figure~\ref{fig:map} without a cliff and the only one whose agentic resolve rate is unchanged from $T{=}1$ to $T{=}2$. Min-$p$ can be pushed toward the same behavior with a larger $p$, which moves its cliff to higher temperatures at the cost of a tighter set everywhere below.
+
+\paragraph{Long context as a sampling problem.}
+These results support the title in a narrower sense than an earlier version of this paper claimed. Sampling is not a cure for late-context collapse: forced to 16K tokens, every model and every rule we tested degrades, and models that want to loop will loop under any truncation rule. But long generation repeatedly pushes models into the regime where the sampler matters, through long and unfamiliar contexts, tool output, and the elevated temperatures used for exploration, best-of-$n$ selection and reinforcement learning rollouts. In that regime the sampler is not a detail. It decides whether the generation, or the agent, keeps working at all.
+
+%% ====================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+%% ====================================================================
+
+We reran a sampler study of long-context generation from scratch and found that the strong version of its claim does not hold: at $T{=}1$ no truncation rule prevents late-context collapse, and none beats top-$p$ on long-horizon agentic coding. A weaker and more useful claim does hold, with large effects. Under elevated temperature the sampler decides whether long generation and agents survive, and the temperature response of the realized candidate set predicts which rules do. Top-$p$, top-$k$ and Top-H break, min-$p$ and \pless{} bend, and top-$n\sigma$, whose candidate set is provably temperature invariant, holds. Practitioners who raise temperature for diversity or exploration in long or agentic generation should use a temperature-invariant rule, and evaluations of samplers should report the candidate-set size each rule actually realizes rather than its hyperparameter alone.
 
 %% ====================================================================
 \bibliography{refs}
@@ -229,117 +267,20 @@ The forced-length protocol of Table~\ref{tab:r1} applied to six non-fiction prom
 \section{Limitations}
 \label{sec:limitations}
 
-\paragraph{Model scale range.}
-The study covers ten open-weight models from 1B to 120B parameters. Closed frontier models (e.g., the GPT-4 and Claude families) cannot be tested under our protocol because their sampler implementations are not user-controllable and their decoders are not exposed to the logit processor. Our results predict but do not measure their behavior at the scales we cannot reach.
+\paragraph{Judge.}
+All quality scores come from one LLM judge (gpt-oss-120b) scoring 1.5K-token windows. LLM judges have known length, style and position biases~\citep{zheng2023judging}. We report loop rates, the realized candidate set, and objective SWE-bench test outcomes alongside the judge so that no conclusion rests on the judge alone, and we ran no human evaluation.
 
-\paragraph{Domain restriction.}
-All experiments use creative fiction prompts. We chose fiction because late-context collapse is clearly visible in long narratives, but other domains (technical writing, multi-turn dialogue, code generation, agentic chains) may exhibit different failure modes or interact differently with the sampler. We expect the qualitative ordering to transfer because the underlying mechanism (the global-summary feedback loop) is domain-independent, but we have not directly verified this.
+\paragraph{Coverage.}
+The replication spans ten open-weight models from 1B to 120B parameters, and the agentic study uses one agent harness and mostly one 9B model, with larger-model replications in progress at the time of writing. Closed models cannot be tested because their samplers are not user-controllable. Each forced-length cell has about 70 generations, so differences of a few tenths of a judge point between non-collapsing rules are not resolvable, and we do not claim any.
 
-\paragraph{LLM-as-judge biases.}
-The 21-metric judge protocol with GPT-4o~\citep{zheng2023judging} introduces known biases (length, style preference, position effects). We do not run a human evaluation, so every quality judgment in the paper rests on automatic metrics and LLM judges.
+\paragraph{Forced length.}
+Forced-length generation is an artificial stress. We therefore also report natural-length continuation (Section~\ref{sec:natural}), which reduces loop rates but leaves the conclusions unchanged.
 
-\paragraph{Inference setup.}
-Models up to 32B run with 4-bit quantization on a single RTX 5090. The 70B and 120B runs use FP8 quantization on a 4xH100 cluster. Quantization can interact with sampling at very high temperature, where logit precision matters most. We have not tested fp16 baselines for the larger models.
+\paragraph{Corrections to earlier versions.}
+An earlier version of this paper stated the top-$n\sigma$ threshold incorrectly, reported a human evaluation that was not carried out, and contained figures and tables that were not produced from experiments. All of these have been removed. Every number in this version is generated by scripts from the released runs. During the rerun we also found that one of our own auxiliary implementations computed $\sigma(\mathbf{z})$ over logits containing $-\infty$ padding, producing an empty candidate set; the affected runs (the Qwen3-4B and Qwen3-8B sweeps' top-$n\sigma$ cells) are excluded, and the main implementation was verified to be unaffected.
 
-\paragraph{Diagnostic scope.}
-The selected-token rank is a useful one-dimensional diagnostic but cannot capture every form of distributional pathology. Long-form coherence failures that do not reduce to per-step distribution sharpening (e.g., factual drift, mid-story tone shifts) are not directly measured by the rank trajectory.
-
-\paragraph{Implementation efficiency.}
-Our \pless{} implementation is an unfused custom logit processor in SGLang. Throughput overhead is modest in our setup but could matter in latency-sensitive deployments. A fused implementation would close the gap, but we do not include one.
-
-
-\section{Large 32K Campaign: 8B to 32B}
-\label{app:large32k}
-
-The 8B--32B campaign (four models, nine sampler configurations, eight genres, three seeds, 864 generations at 32K) confirms the small-scale finding that adaptive sampling holds final-quartile diversity near the ceiling while standard truncation collapses. \pless{} achieves the lowest repetition rate of any setting in the campaign and shows its strongest relative advantage on the largest model (Qwen2.5-32B), foreshadowing the frontier-scale picture in Section~\ref{sec:scale_campaign}. Mistral-Nemo is an instructive ceiling case where all samplers perform well at 32K. Figure~\ref{fig:hero-full} visualizes the cross-model collapse pattern.
-
-\begin{table}[h]
-\centering
-\caption{\textbf{\pless{} achieves the lowest 10-gram repetition of any setting in the 8B--32B 32K campaign, with min-p at high temperature matching its diversity but missing on repetition.} Cross-model mean \Qfour{} metrics over three differentiating models (Llama-3.1-8B, Qwen2.5-14B, Qwen2.5-32B). Mistral-Nemo, which performs at ceiling regardless of sampler, is reported separately. Each cell averages 24 generations.}
-\label{tab:large32k}
-\small
-\begin{tabular}{lcccc}
-\toprule
-Sampler & \Qfour{} d2 $\uparrow$ & \Qfour{} rep10 $\downarrow$ & \Qfour{} TTR $\uparrow$ \\
-\midrule
-\best{Min-p 0.1, $T{=}2.5$} & \best{0.935} & 0.042 & \best{0.706} \\
-\pless{}, $T{=}1.9$ & 0.930 & \best{0.017} & 0.582 \\
-\pless{}, $T{=}2.2$ & 0.903 & 0.046 & 0.571 \\
-Min-p 0.1, $T{=}2.0$ & 0.643 & 0.081 & 0.406 \\
-Temp-only, $T{=}1.0$ & 0.313 & 0.620 & 0.207 \\
-Top-p 0.95, $T{=}1.0$ & 0.121 & 0.879 & 0.085 \\
-Top-k 50, $T{=}1.0$ & 0.096 & 0.718 & 0.039 \\
-Top-k 100, $T{=}1.0$ & 0.099 & 0.768 & 0.048 \\
-Top-p 0.9, $T{=}1.0$ & 0.068 & 0.949 & 0.042 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{figures/fig_large_32k_campaign.png}
-\caption{\textbf{Across four 8B--32B models at 32K, adaptive methods maintain high diversity and low repetition while standard truncation collapses. Mistral-Nemo is the ceiling case where all samplers perform well.} Final-quartile distinct-2 (top) and 10-gram repetition (bottom) per model.}
-\label{fig:large32k}
-\end{figure}
-
-
-\section{Head-to-head \pless{} at 32K on Llama-3.1-8B}
-\label{sec:32k_pless_app}
-
-A head-to-head 32K study on Llama-3.1-8B anchors the temperature sweep used at frontier scale. \pless{} at $T{=}1.0$ achieves near-perfect distinct-2 with effectively zero 10-gram repetition, while top-k 50 and a weak min-p baseline collapse. The temperature sweep reveals $T{=}1.3$ as the optimal small-model operating point.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.75\textwidth]{figures/fig_32k_pless.png}
-\caption{\textbf{\pless{} at $T{=}1.3$ is the small-model operating point: near-perfect distinct-2 and effectively zero 10-gram repetition.} \pless{} at 32K tokens on Llama-3.1-8B. (a) Head-to-head: \pless{} holds high distinct-2 and near-zero rep10 while top-k and a weak min-p baseline collapse. (b) Temperature sweep across $T{\in}\{1.0,1.3,1.6,1.9,2.2\}$.}
-\label{fig:32k}
-\end{figure}
-
-
-\section{8K \pless{} Retune}
-\label{app:retune}
-
-Retuning the \pless{} temperature improves it substantially at small scale. The best small-scale operating point shifts from $T{=}1.3$ to $T{=}1.9$, where 10-gram repetition essentially vanishes and distinct-2 approaches the ceiling. Min-p still edges \pless{} on TTR at this scale, but the gap closes and reverses at frontier scale (Section~\ref{sec:scale_campaign}).
-
-
-\section{Hero Figure: Late-Context Collapse at Scale}
-\label{app:hero}
-
-Figure~\ref{fig:hero-full} provides an expanded view of the final-quartile collapse phenomenon across all three differentiating models in the 32K campaign.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{figures/fig_hero_degeneration.png}
-\caption{\textbf{The advantage of adaptive sampling widens as model size grows, peaking on Qwen2.5-32B where standard truncation collapses to near-zero diversity.} Final-quartile metrics at 32K across 8B--32B models.}
-\label{fig:hero-full}
-\end{figure}
-
-
-\section{21-Metric Judge Heatmap}
-\label{app:judge_heatmap}
-
-Figure~\ref{fig:judge-heatmap-app} shows the full 21-metric LLM-as-judge breakdown corresponding to Table~\ref{tab:judge-main}. The full-distribution-aware family (\pless{}, Top-H, top-$n\sigma$) leads on every metric family that captures long-range behavior, including long-range coherence, mid- and end-of-manuscript quality, stability, and overall quality. The metrics where standard truncation comes closest to the adaptive samplers are the short-window ones (grammar and beginning quality), which is consistent with the picture that long-context degeneration is the failure mode that distinguishes the families.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.85\textwidth]{figures/fig_judge_21metric.png}
-\caption{\textbf{Full 21-metric heatmap supporting Table~\ref{tab:judge-main}.} The full-distribution-aware family leads on every metric that captures long-range behavior. Standard truncation closes the gap only on the short-window metrics (grammar, beginning quality).}
-\label{fig:judge-heatmap-app}
-\end{figure}
-
-
-\section{$Q_1$ versus $Q_4$ Selected-Token Rank}
-\label{app:q1q4}
-
-The $Q_1$-versus-$Q_4$ aggregation accompanying Figure~\ref{fig:mstr_trajectory} is shown in Figure~\ref{fig:q1q4-app}. All samplers begin in the healthy 2.5--5 band. By $Q_4$, only the full-distribution-aware family stays there. Min-p drops below 2.0, and top-k and top-p land on the argmax floor near 1.0.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.7\textwidth]{figures/fig_q1q4_rank.png}
-\caption{\textbf{All samplers begin in the healthy band, but only the full-distribution-aware family ends $Q_4$ there.} $Q_1$ versus $Q_4$ selected-token rank on Llama-3-70B at 32K. The shaded band marks the healthy 2.5--5 region. The dotted line at 1.0 is the argmax floor.}
-\label{fig:q1q4-app}
-\end{figure}
-
+\paragraph{Implementation.}
+All samplers run as one unfused vLLM logits processor. We do not measure latency.
 
 \input{checklist}
 

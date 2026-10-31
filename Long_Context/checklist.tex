@@ -7,12 +7,12 @@
 \item {\bf Claims}
     \item[] Question: Do the main claims made in the abstract and introduction accurately reflect the paper's contributions and scope?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The abstract states three claims (full-distribution-aware samplers dominate judged quality at frontier scale, min-p sits in a middle tier, and the gap widens with model scale) and each is supported by specific numbers from the experimental record. The three numbered contributions in the introduction map directly to the results sections.
+    \item[] Justification: The abstract and introduction state a negative result at $T{=}1$ (no sampler prevents forced-length collapse or beats top-$p$ on agentic coding), the candidate-set temperature-response mechanism, and the agentic results under elevated temperature. Each is backed by Tables~\ref{tab:r1}--\ref{tab:swe} and Figure~\ref{fig:map}, and the claims are scoped to the regimes measured.
 
 \item {\bf Limitations}
     \item[] Question: Does the paper discuss the limitations of the work performed by the authors?
     \item[] Answer: \answerYes{}
-    \item[] Justification: Section~\ref{sec:limitations} discusses model scale range (1B--120B open-weight only, no closed frontier models), domain restriction to creative fiction, LLM-as-judge biases, the small multi-model judged subset, the quantization-only inference setup, the one-dimensional nature of the selected-token rank diagnostic, and the unfused \pless{} implementation.
+    \item[] Justification: Appendix~\ref{sec:limitations} covers the single LLM judge, model and harness coverage, statistical resolution, the artificiality of forced length, corrections to earlier versions, and implementation.
 
 \item {\bf Theory Assumptions and Proofs}
     \item[] Question: For each theoretical result, does the paper provide the full set of assumptions and a complete (correct) proof?
@@ -22,52 +22,52 @@
 \item {\bf Experimental Result Reproducibility}
     \item[] Question: Does the paper fully disclose all the information needed to reproduce the main experimental results of the paper to the extent that it affects the main claims and/or conclusions of the paper?
     \item[] Answer: \answerYes{}
-    \item[] Justification: Section~\ref{sec:setup} specifies the exact models, prompt genres, output lengths, sampler configurations, evaluation metrics, and infrastructure. Section~\ref{sec:method} describes the \pless{} algorithm. All sampler parameter values are reported in the tables.
+    \item[] Justification: Section~\ref{sec:setup} specifies models, prompts, lengths, protocols, sampler settings, the loop and healthy definitions, and the judge rubric. Every wave was pre-registered before its outputs were read, and post-hoc summaries are labelled as such.
 
 \item {\bf Open access to data and code}
     \item[] Question: Does the paper provide open access to the data and code, with sufficient instructions to faithfully reproduce the main experimental results?
     \item[] Answer: \answerYes{Code and data will be released to the public upon acceptance.}  \href{https://anonymous.4open.science/r/long_context-20AE/}{Code is available here}
-    \item[] Justification: The experimental codebase and generated outputs will be released as a public repository upon acceptance.
+    \item[] Justification: Code (sampler logits processor, reference-equivalence tests, experiment and analysis scripts, and the scripts that generate every table) and per-generation metrics are released. Raw generations are available on request because of their size.
 
 \item {\bf Experimental Setting/Details}
     \item[] Question: Does the paper specify all the training and test details necessary to understand the results?
     \item[] Answer: \answerYes{}
-    \item[] Justification: All models are used off-the-shelf with no fine-tuning. Models up to 32B are inferred with SGLang on a single RTX 5090 with 4-bit quantization. The 70B and 120B runs use FP8 quantization on a 4xH100 cluster. All sampler parameters, temperatures, output lengths, and evaluation metrics are specified in Section~\ref{sec:setup}.
+    \item[] Justification: All models are used off the shelf in bf16 with no fine-tuning. Sampler hyperparameters, temperatures, lengths, prompts, seeds and the judge configuration are given in Section~\ref{sec:setup} and the released job files.
 
 \item {\bf Experiment Statistical Significance}
     \item[] Question: Does the paper report error bars suitably and correctly defined or other appropriate information about the statistical significance of the experiments?
     \item[] Answer: \answerYes{}
-    \item[] Justification: We report means over multiple generations per cell (3--24 depending on the study) and note sample sizes throughout. The 16K cross-model transfer figure (Figure~\ref{fig:transfer}) reports error bars from the across-model spread. The 32K campaign averages 24 generations per cell. We discuss the small multi-model judged subset as a limitation.
+    \item[] Justification: We report bootstrap 95\% intervals over generations for judged quality and healthy rate, exact two-sided sign tests for paired SWE-bench comparisons, and per-cell sample sizes in every caption.
 
 \item {\bf Experiments Compute Resources}
     \item[] Question: For each experiment, does the paper provide sufficient information on the computer resources needed to reproduce the experiments?
     \item[] Answer: \answerYes{}
-    \item[] Justification: Models up to 32B run on a single NVIDIA RTX 5090 (32 GB) with 4-bit quantized models served through SGLang. The 70B and 120B runs use FP8 quantization on a 4xH100 cluster. The total compute is on the order of a few hundred GPU-hours.
+    \item[] Justification: Experiments ran on one node with eight NVIDIA H200 GPUs (vLLM 0.30) and one RTX 5090 (vLLM 0.11). GPU-hours per job are logged by our scheduler and released; SWE-bench evaluation ran on CPU with Docker. TODO(final): insert the total from the scheduler log when the campaign completes.
 
 \item {\bf Code Of Ethics}
     \item[] Question: Does the research conducted in the paper conform, in every respect, with the NeurIPS Code of Ethics?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The research studies open-weight language models on creative fiction generation. No personally identifying information is collected.
+    \item[] Justification: The research studies open-weight language models on fiction, non-fiction and software-engineering tasks. No human subjects and no personally identifying information are involved.
 
 \item {\bf Broader Impacts}
     \item[] Question: Does the paper discuss both potential positive societal impacts and negative societal impacts of the work?
     \item[] Answer: \answerYes{}
-    \item[] Justification: Improved long-context sampling lets open-weight models produce coherent long-form text without retraining, which lowers the cost of high-quality generation for low-resource users and reduces the energy cost of post-training fixes. The same improvement applies to misuse cases (longer fluent disinformation, longer phishing). The underlying models already enable both, and our contribution is a sampler-level change that does not unlock new capabilities beyond what the base models support.
+    \item[] Justification: The results help practitioners choose samplers for long and agentic generation and discourage evaluation practices that hide sampler failure modes. We see no direct negative impact beyond those of open-weight language models generally.
 
 \item {\bf Safeguards}
     \item[] Question: Does the paper describe safeguards that have been put in place for responsible disclosure of data with personal or offensive content?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The generated outputs are creative fiction from non-adversarial standard prompts. We screened the prompt set to exclude topics that would induce graphic or unsafe content from the underlying models. The released artifact will be the sampler implementation and aggregate evaluation scripts, not the raw generations.
+    \item[] Justification: Generated outputs come from standard non-adversarial prompts on publicly released models. We release metrics and code, not new models.
 
 \item {\bf Licenses for existing assets}
     \item[] Question: Are the creators or original owners of assets used in the paper properly credited and are the license and terms of use explicitly mentioned and properly respected?
     \item[] Answer: \answerYes{}
-    \item[] Justification: All models used are open-weight and properly cited. SGLang is cited. No proprietary datasets are used.
+    \item[] Justification: All models, datasets (SWE-bench Verified, LiveCodeBench) and software (vLLM, mini-swe-agent) are cited and used under their licenses.
 
 \item {\bf New Assets}
     \item[] Question: Are new assets introduced in the paper well documented and is the documentation provided alongside the assets?
     \item[] Answer: \answerYes{The \pless{} sampler implementation and evaluation scripts will be released with documentation.}
-    \item[] Justification: The \pless{} algorithm is described in Section~\ref{sec:method}. Code release is planned upon acceptance.
+    \item[] Justification: The released code is documented, including the sampler implementations and the tests that verify them against the authors' reference code.
 
 \item {\bf Crowdsourcing and Research with Human Subjects}
     \item[] Question: For crowdsourcing experiments and research with human subjects, does the paper include the full text of instructions given to participants and screenshots, if applicable, as well as details about compensation?
@@ -82,6 +82,6 @@
 \item {\bf Declaration of LLM usage}
     \item[] Question: Does the paper describe the usage of LLMs if it is an important, original, or non-standard component of the core methods in this research?
     \item[] Answer: \answerYes{}
-    \item[] Justification: GPT-4o is used as the LLM judge in our 21-metric evaluation protocol (Section~\ref{sec:setup}). The paper itself studies sampling algorithms for open-weight LLMs across ten models (Llama, Qwen, Mistral, GPT-OSS), all of which are documented in Section~\ref{sec:setup}. LLMs were not used in the writing of the paper beyond standard editing assistance, which does not affect the core methods or claims.
+    \item[] Justification: LLMs are used as experimental subjects (the models studied) and as an evaluation instrument (gpt-oss-120b as judge, Section~\ref{sec:setup}). AI assistance was used for implementation, experiment execution, analysis and drafting; the authors reviewed all of it.
 
 \end{enumerate}
