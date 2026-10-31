@@ -23,7 +23,7 @@
 \newcommand{\best}[1]{\textbf{#1}}
 \newcommand{\Qfour}{Q\textsubscript{4}}
 
-\title{Long-Context Generation Is a Sampling Problem}
+\title{Long-Context Generation Is a Sampling Problem\\(When You Turn Up the Heat)}
 
 \author{
   Anonymous Author(s)
@@ -46,6 +46,14 @@ Open-weight language models now accept and nominally generate very long sequence
 A competing explanation blames the sampler. Truncation rules such as top-$p$~\citep{holtzman2020curious} and top-$k$~\citep{fan2018hierarchical} were designed and validated on short outputs, and a family of newer rules, min-$p$~\citep{nguyen2024minp}, top-$n\sigma$~\citep{tang2024topnsigma}, Top-H~\citep{baghaei2025toph} and P-less~\citep{tan2025pless}, claims to adapt the candidate set to the shape of each step's distribution. If the sampler were the bottleneck, a better rule should hold long generations together without any training.
 
 We test this claim directly, and we report what we find even where it cuts against the claim. Every experiment in this paper is a fresh run in bf16 with a single instrumented implementation of all samplers, verified against each method's reference code, which logs the realized candidate set at every decoding step.
+
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_hero.pdf}
+\caption{\textbf{At $T{=}1$ every sampler decays the same way. Raise the temperature and the sampler decides everything.} Judged quality of 1.5K-token windows by position in forced 16K-token fiction, averaged over ten models from 1B to 120B (about 70 generations per line). At $T{=}2$, top-$p$ and pure sampling produce word salad from the first window, while top-$n\sigma$ starts as well as at $T{=}1$.}
+\label{fig:hero}
+\end{figure}
 
 \paragraph{Contributions.}
 \begin{enumerate}[leftmargin=*,nosep]
@@ -155,6 +163,13 @@ Table~\ref{tab:pool} reports the median number of tokens each rule actually admi
 \input{tables/cr_pool_r1_16k.tex}
 \end{table}
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.62\textwidth]{figures/fig_pool.pdf}
+\caption{\textbf{Only top-$n\sigma$ and top-$k$ admit the same number of tokens at every temperature.} Median tokens admitted per decoding step (log scale) over the first 2K tokens of the Figure~\ref{fig:map} generations, four models, 32 generations per point.}
+\label{fig:pool}
+\end{figure}
+
 First, at $T{=}1$ the adaptive rules are close to greedy decoding. \pless{} admits a single token on 93\% of steps, and min-$p$, Top-H and top-$n\sigma$ on 54--62\%. A rule that keeps one candidate cannot break a loop no matter how it chose that candidate, which is why their loop rates match greedy.
 
 Second, the rules split by how the candidate set responds to temperature. The top-$n\sigma$ set is identical at every temperature by construction (Section~\ref{sec:method}), and its realized median stays at 1. Min-$p$ and \pless{} grow slowly (1 to 13 and 1 to 31 between $T{=}1$ and $T{=}2$). Top-H grows like a mass-based rule (1 to 54), and top-$p$ explodes to most of the vocabulary. The faster a rule's candidate set grows, the sooner temperature lets it escape loops, and the sooner it admits the noise tail that produces word salad. Top-H, despite reading a global statistic of the distribution, behaves like top-$p$ here, so ``full-distribution-aware'' does not describe a shared mechanism. What predicts behavior is the temperature response of the realized candidate set.
@@ -166,8 +181,8 @@ Tables~\ref{tab:r1} and~\ref{tab:pool} fix one hyperparameter per rule. To check
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{figures/fig_r5.pdf}
-\caption{\textbf{Only top-$n\sigma$ keeps its judged quality as temperature rises. Every other family has a cliff, and its hyperparameter only moves it.} Mean judged window quality (1--10) over four models and 32 forced 8K-token generations per point. Dotted gray: pure sampling. The horizontal line at 4.0 marks roughly the quality every rule reaches at $T{\le}1$.}
+\includegraphics[width=\textwidth]{figures/fig_map.pdf}
+\caption{\textbf{Only top-$n\sigma$ keeps its judged quality as temperature rises. Every other family has a cliff, and its hyperparameter only moves it.} Mean judged window quality (1--10) over four models and 32 forced 8K-token generations per point. Lighter to darker lines follow the listed hyperparameter values. Dotted gray: pure sampling. The horizontal line at 4.0 marks roughly the quality every rule reaches at $T{\le}1$.}
 \label{fig:map}
 \end{figure}
 
@@ -187,6 +202,13 @@ If temperature hurts temperature-growing rules because it changes \emph{which} t
 \small
 \input{tables/cr_r8.tex}
 \end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_tl.pdf}
+\caption{\textbf{Fixing the candidate set at $T{=}1$ removes the temperature cliff for Top-H, min-$p$ and \pless{}, partly for top-$p$, and not at all for top-$k$.} Same data as Table~\ref{tab:tl}.}
+\label{fig:tl}
+\end{figure}
 
 The prediction holds for Top-H, and also for min-$p$ and \pless{}. With the candidate set fixed at $T{=}1$, all three keep their $T{=}1$ quality through $t{=}3$ (4.1--4.6), where the standard order has collapsed them to 1.1--1.2. The prediction fails for top-$p$, which improves (2.6 against 1.0 at $T{=}3$) but stays far below its $T{=}1$ quality of 4.7, and top-$k$ does not improve at all. Both failures have the same cause, visible in Table~\ref{tab:pool}. Top-$k$ admits 50 tokens at every step, including steps where the model is nearly certain, and top-$p$ at $T{=}1$ admits a median of 2 tokens but a mean of 73, because at uncertain steps it reaches deep into the tail to cover 90\% of the mass. Once those tail tokens are in the set, any temperature above 1 promotes them.
 
@@ -221,6 +243,13 @@ Agentic coding is long-context generation in its most practical form. The model 
 \small
 \input{tables/cr_swe_r3b_swelong.tex}
 \end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_swe.pdf}
+\caption{\textbf{Temperature-growing rules break coding agents. Tight rules keep working.} SWE-bench Verified resolve rate by temperature for every fully graded model and harness setting, mini-swe-agent, official test harness.}
+\label{fig:swe}
+\end{figure}
 
 At $T{=}1$ the agentic result mirrors the fiction result. Every sampler resolves between 46\% and 56\% of instances, and no paired comparison with top-$p$ is significant (largest margin Top-H, 9 wins to 4, $p{=}0.27$). The clearest behavioral difference is \pless{}, whose mean episode runs 129 steps against 81--93 for every other rule, and 18\% of whose trajectories fall into a repeated-action loop (Top-H also loops in 18\%, the rest in none). Long, repetitive episodes are the agentic analogue of the near-greedy behavior in Table~\ref{tab:pool}.
 
