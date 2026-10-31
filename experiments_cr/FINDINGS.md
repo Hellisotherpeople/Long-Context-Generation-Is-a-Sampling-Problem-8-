@@ -15,3 +15,14 @@ Source: results/cr_r1_16k.txt (judge = gpt-oss-120b, window overall 1-10; loop =
    - min-p and P-less sit in between (first window 3.04 / 2.89 at T=2.0).
 4. Implication for the paper: "sampler choice" governs local quality under elevated temperature, not whether long
    forced generation survives. Matches the Oct-2026 ~/lcgen phase result and the rebuttal's agentic finding.
+
+## Mechanism: realised candidate-set size (results/cr_pool_r1_16k.txt; first 2,048 tokens, ~73 generations/cell, 10 models)
+median |C| at T = 1.0 / 1.5 / 2.0  (fraction of steps with a single candidate at T=1.0)
+- P-less      1 / 1 / 31      (0.93)  -> P-less at T=1 is greedy decoding on 93% of steps; explains its 99% loop rate.
+- top-nsigma  1 / 1 / 1       (0.54)  -> flat in T (per-step invariant by construction; realised means 3.4/4.1/4.6 differ only because trajectories differ).
+- min-p 0.1   1 / 3 / 13      (0.60)
+- Top-H 0.4   1 / 11 / 54     (0.62)  -> grows with T; NOT temperature-invariant, so the draft's "full-distribution-aware family" splits.
+- top-p 0.9   2 / 37,654 / 83,518 (0.48) -> explodes; explains word salad at T>=1.5.
+- top-k 50    51 / 51 / 51 (argmax always kept, so 51 when argmax is outside the top 50 ties).
+Reading: the rule that matters is how |C| responds to temperature. Tight-at-T=1 rules (P-less, nsigma, min-p) are near-greedy
+and loop; T-growing rules escape loops only by admitting the noise tail.
