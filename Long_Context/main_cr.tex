@@ -161,7 +161,22 @@ Second, the rules split by how the candidate set responds to temperature. The to
 
 \subsection{Agentic coding}
 \label{sec:agentic}
-% R3 SWE-bench Verified, R6 LiveCodeBench.
+
+Agentic coding is long-context generation in its most practical form. The model writes hundreds of turns of commands and edits into a context that grows past 40K tokens, and a single malformed action can end the episode. We run Qwen3.5-9B inside mini-swe-agent~\citep{minisweagent,yang2024sweagent} on fixed random subsets of SWE-bench Verified~\citep{jimenez2024swebench}, grade every patch with the official test harness, and compare each sampler with top-$p$ 0.9 at the same temperature on the same instances, as pre-registered. Table~\ref{tab:swe} reports the long-horizon variant, which allows 500 agent steps and a 262K-token window over 50 instances.
+
+\begin{table}[t]
+\centering
+\caption{\textbf{At $T{=}1$ no sampler beats top-$p$ on long-horizon agentic coding; at $T{=}1.5$ temperature-growing rules break the agent and tight rules do not.} SWE-bench Verified, Qwen3.5-9B, mini-swe-agent with a 500-step limit and 262K context, 50 fixed instances. Resolved: fraction of instances whose patch passes the official tests. W/L: instances resolved by the sampler but not by top-$p$ 0.9 at the same $T$, and the reverse. $^{*}$: two-sided sign test $p<0.05$.}
+\label{tab:swe}
+\small
+\input{tables/cr_swe_r3b_swelong.tex}
+\end{table}
+
+At $T{=}1$ the agentic result mirrors the fiction result. Every sampler resolves between 46\% and 56\% of instances, and no paired comparison with top-$p$ is significant (largest margin Top-H, 9 wins to 4, $p{=}0.27$). The one behavioral difference is \pless{}: 18\% of its trajectories fall into a repeated-action loop and its mean episode runs 129 steps against roughly 85 for the others, the agentic analogue of the near-greedy behavior in Table~\ref{tab:pool}.
+
+At $T{=}1.5$ the rules separate completely. Top-$p$ and pure sampling resolve nothing, because their actions degrade into malformed output within a few turns (mean episode length 16 and 7 steps, with 4--6 format errors per episode). Top-H keeps 18\%. Min-$p$, \pless{} and top-$n\sigma$ keep or exceed their $T{=}1$ rate (48\%, 58\% and 52\%) and beat top-$p$ on every instance where the two disagree (24--0, 29--0 and 26--0, all $p<10^{-6}$). On the 100-instance grid with a 250-step limit the same split holds at $T{=}2$: top-$p$, top-$k$, Top-H and pure sampling resolve 0 of 100 instances, while top-$n\sigma$ and \pless{} resolve 51 and 50 (Appendix~\ref{app:swe}).
+
+Temperature is not a knob practitioners turn up for fun in agentic settings, but flattened distributions arrive anyway, through long and noisy contexts, unfamiliar tool output, and the sampling temperatures used for exploration in best-of-$n$ and reinforcement learning. The candidate-set response to temperature determines whether an agent survives that regime.
 
 %% ====================================================================
 \bibliography{refs}
@@ -171,6 +186,17 @@ Second, the rules split by how the candidate set responds to temperature. The to
 %% ====================================================================
 \newpage
 \appendix
+
+\section{SWE-bench Verified: 100-instance grid}
+\label{app:swe}
+
+Qwen3.5-9B, mini-swe-agent, 250-step limit, 100 fixed instances, three temperatures. Cells marked -- are still being graded.
+
+\begin{table}[h]
+\centering
+\small
+\input{tables/cr_swe_r3a_swe.tex}
+\end{table}
 
 \section{Non-fiction at 16K}
 \label{app:nonfic}
