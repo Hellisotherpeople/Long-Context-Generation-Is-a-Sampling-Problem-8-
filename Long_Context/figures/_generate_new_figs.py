@@ -181,91 +181,6 @@ def fig_q1q4_bars():
 # Figure: Human eval (MTurk + GPT-4o judge) across model scales.
 # Larger fonts, separated sampler labels in panel (b), reduced y ticks.
 # =====================================================================
-def fig_human_eval():
-    samplers = ["P-less", "Top-H", "Top-$n\\sigma$", "Min-p 0.1", "Top-k 50", "Top-p 0.9"]
-    color_keys = ["P-less", "Top-H", "Top-n-sigma", "Min-p", "Top-k", "Top-p"]
-
-    mturk_8b   = [84.2, 81.5, 77.8, 72.1, 31.4, 50.0]
-    mturk_70b  = [89.1, 86.3, 81.0, 75.5, 28.2, 50.0]
-    mturk_120b = [91.4, 88.7, 84.1, 79.0, 24.5, 50.0]
-
-    judge_8b   = [8.82, 8.51, 8.10, 7.45, 3.12, 2.85]
-    judge_70b  = [9.15, 8.90, 8.44, 7.82, 2.95, 2.40]
-    judge_120b = [9.42, 9.21, 8.75, 8.11, 2.80, 2.15]
-
-    fig, axes = plt.subplots(1, 2, figsize=(14, 5.2))
-    ax1, ax2 = axes
-
-    n = len(samplers)
-    x = np.arange(n)
-    w = 0.27
-    ax1.bar(x - w, mturk_8b, w,
-            color=[COLORS[c] for c in color_keys], alpha=0.55,
-            edgecolor="white", label="Llama-3.1-8B")
-    ax1.bar(x, mturk_70b, w,
-            color=[COLORS[c] for c in color_keys], alpha=0.78,
-            edgecolor="white", label="Llama-3-70B")
-    ax1.bar(x + w, mturk_120b, w,
-            color=[COLORS[c] for c in color_keys], alpha=1.0,
-            edgecolor="white", label="GPT-OSS-120B")
-
-    ax1.axhline(50, color="black", linestyle=":", linewidth=1.0, alpha=0.5)
-    ax1.text(n - 1.05, 53, "Top-p 0.9 baseline (50\\%)",
-             fontsize=10, color="#444", ha="right")
-
-    ax1.set_xticks(x)
-    ax1.set_xticklabels(samplers, rotation=18, ha="right")
-    ax1.set_ylabel("MTurk Win Rate (\\%)")
-    ax1.set_ylim(0, 100)
-    ax1.yaxis.set_major_locator(MultipleLocator(25))
-    ax1.set_title("(a) Human pairwise preference vs. Top-p 0.9")
-
-    scale_handles = [
-        Patch(facecolor="#444", alpha=0.55, label="8B"),
-        Patch(facecolor="#444", alpha=0.78, label="70B"),
-        Patch(facecolor="#444", alpha=1.0,  label="120B"),
-    ]
-    ax1.legend(handles=scale_handles, loc="upper right",
-               title="Model scale", title_fontsize=11)
-    style_ax(ax1)
-
-    scales = ["8B", "70B", "120B"]
-    sx = np.arange(len(scales))
-    series = [
-        ("P-less",        [judge_8b[0], judge_70b[0], judge_120b[0]], COLORS["P-less"], "o"),
-        ("Top-H",         [judge_8b[1], judge_70b[1], judge_120b[1]], COLORS["Top-H"], "s"),
-        ("Top-$n\\sigma$", [judge_8b[2], judge_70b[2], judge_120b[2]], COLORS["Top-n-sigma"], "D"),
-        ("Min-p 0.1",     [judge_8b[3], judge_70b[3], judge_120b[3]], COLORS["Min-p"], "^"),
-        ("Top-k 50",      [judge_8b[4], judge_70b[4], judge_120b[4]], COLORS["Top-k"], "v"),
-        ("Top-p 0.9",     [judge_8b[5], judge_70b[5], judge_120b[5]], COLORS["Top-p"], "X"),
-    ]
-    for label, vals, c, mk in series:
-        ax2.plot(sx, vals, color=c, marker=mk, markersize=10, linewidth=2.2, label=label)
-
-    # Place legend outside the plotting area to avoid overlap with lines.
-    ax2.set_xticks(sx)
-    ax2.set_xticklabels(scales)
-    ax2.set_ylabel("GPT-4o Judge Score (0--10)")
-    ax2.set_xlabel("Model parameter count")
-    ax2.set_xlim(-0.25, sx[-1] + 0.25)
-    ax2.set_ylim(0, 10)
-    ax2.yaxis.set_major_locator(MultipleLocator(2.5))
-    ax2.set_title("(b) GPT-4o judge score across model scale")
-    ax2.legend(loc="center left", bbox_to_anchor=(1.02, 0.5),
-               fontsize=11, ncol=1)
-    style_ax(ax2)
-
-    plt.tight_layout()
-    plt.savefig(os.path.join(OUT_DIR, "fig_human_eval.png"))
-    plt.close(fig)
-    print("wrote fig_human_eval.png")
-
-
-# =====================================================================
-# Figure: Frontier-scale 32K and 64K. Reduced to two rows (Q4 rep10 +
-# Q4 selected-token rank) on the 120B model only.
-# Removes top suptitle. Larger fonts.
-# =====================================================================
 def fig_frontier_scale():
     samplers = ["P-less", "Top-H", "Top-$n\\sigma$",
                 "Min-p 0.1", "Top-k 50", "Top-p 0.9"]
@@ -622,7 +537,6 @@ def fig_appendix_judge_vs_auto():
 if __name__ == "__main__":
     fig_mstr_collapse()
     fig_q1q4_bars()
-    fig_human_eval()
     fig_frontier_scale()
     fig_analysis_mechanism()
     fig_transfer_16k()

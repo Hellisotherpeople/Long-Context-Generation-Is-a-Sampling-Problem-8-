@@ -7,7 +7,7 @@
 \item {\bf Claims}
     \item[] Question: Do the main claims made in the abstract and introduction accurately reflect the paper's contributions and scope?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The abstract states three claims (full-distribution-aware samplers dominate judged quality and human preference at frontier scale, min-p sits in a middle tier, and the gap widens with model scale) and each is supported by specific numbers from the experimental record. The three numbered contributions in the introduction map directly to the results sections.
+    \item[] Justification: The abstract states three claims (full-distribution-aware samplers dominate judged quality at frontier scale, min-p sits in a middle tier, and the gap widens with model scale) and each is supported by specific numbers from the experimental record. The three numbered contributions in the introduction map directly to the results sections.
 
 \item {\bf Limitations}
     \item[] Question: Does the paper discuss the limitations of the work performed by the authors?
@@ -37,7 +37,7 @@
 \item {\bf Experiment Statistical Significance}
     \item[] Question: Does the paper report error bars suitably and correctly defined or other appropriate information about the statistical significance of the experiments?
     \item[] Answer: \answerYes{}
-    \item[] Justification: We report means over multiple generations per cell (3--24 depending on the study) and note sample sizes throughout. The 16K cross-model transfer figure (Figure~\ref{fig:transfer}) reports error bars from the across-model spread. The 32K campaign averages 24 generations per cell. The MTurk study aggregates 1{,}500 annotations. We discuss the small multi-model judged subset as a limitation.
+    \item[] Justification: We report means over multiple generations per cell (3--24 depending on the study) and note sample sizes throughout. The 16K cross-model transfer figure (Figure~\ref{fig:transfer}) reports error bars from the across-model spread. The 32K campaign averages 24 generations per cell. We discuss the small multi-model judged subset as a limitation.
 
 \item {\bf Experiments Compute Resources}
     \item[] Question: For each experiment, does the paper provide sufficient information on the computer resources needed to reproduce the experiments?
@@ -47,7 +47,7 @@
 \item {\bf Code Of Ethics}
     \item[] Question: Does the research conducted in the paper conform, in every respect, with the NeurIPS Code of Ethics?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The research studies open-weight language models on creative fiction generation. The 1{,}500-annotation MTurk study uses paid annotators at above-prevailing-wage compensation as detailed in the Crowdsourcing item below. No personally identifying information is collected.
+    \item[] Justification: The research studies open-weight language models on creative fiction generation. No personally identifying information is collected.
 
 \item {\bf Broader Impacts}
     \item[] Question: Does the paper discuss both potential positive societal impacts and negative societal impacts of the work?
@@ -57,7 +57,7 @@
 \item {\bf Safeguards}
     \item[] Question: Does the paper describe safeguards that have been put in place for responsible disclosure of data with personal or offensive content?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The generated outputs are creative fiction from non-adversarial standard prompts. We screened the prompt set to exclude topics that would induce graphic or unsafe content from the underlying models. No personally identifying information is collected from MTurk annotators (only worker IDs, which we do not release). The released artifact will be the sampler implementation and aggregate evaluation scripts, not the raw generations or annotator IDs.
+    \item[] Justification: The generated outputs are creative fiction from non-adversarial standard prompts. We screened the prompt set to exclude topics that would induce graphic or unsafe content from the underlying models. The released artifact will be the sampler implementation and aggregate evaluation scripts, not the raw generations.
 
 \item {\bf Licenses for existing assets}
     \item[] Question: Are the creators or original owners of assets used in the paper properly credited and are the license and terms of use explicitly mentioned and properly respected?
@@ -71,13 +71,13 @@
 
 \item {\bf Crowdsourcing and Research with Human Subjects}
     \item[] Question: For crowdsourcing experiments and research with human subjects, does the paper include the full text of instructions given to participants and screenshots, if applicable, as well as details about compensation?
-    \item[] Answer: \answerYes{}
-    \item[] Justification: The paper reports a 1{,}500-annotation Amazon Mechanical Turk study (Section~\ref{sec:human_eval}). Each task presents two 32K-token completions side by side and asks the annotator to pick the winner based on narrative flow, coherence, and absence of repetitive loops. Order and placement are randomized. Annotators are restricted to U.S.\ workers with at least a 95\% acceptance rate. Compensation is set so that the median completion time corresponds to an effective hourly rate above the U.S.\ federal minimum wage. The full task instructions, attention check items, and screenshots will be included in the supplementary materials of the camera-ready release.
+    \item[] Answer: \answerNA{}
+    \item[] Justification: The paper does not involve crowdsourcing or research with human subjects.
 
 \item {\bf Institutional Review Board (IRB) Approvals or Equivalent for Research with Human Subjects}
     \item[] Question: Does the paper describe potential risks incurred by study participants, whether such risks were disclosed to the subjects, and whether Institutional Review Board (IRB) approvals were obtained?
-    \item[] Answer: \answerYes{}
-    \item[] Justification: The MTurk study qualifies as minimal-risk human-subjects research under common-rule guidelines. Annotators read short fiction and select a preferred completion. No personally identifying information is collected. The study was reviewed and approved by our institution's IRB (or equivalent ethics review board) before launch.
+    \item[] Answer: \answerNA{}
+    \item[] Justification: The paper does not involve research with human subjects.
 
 \item {\bf Declaration of LLM usage}
     \item[] Question: Does the paper describe the usage of LLMs if it is an important, original, or non-standard component of the core methods in this research?

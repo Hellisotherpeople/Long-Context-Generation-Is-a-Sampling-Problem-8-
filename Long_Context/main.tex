@@ -34,7 +34,7 @@
 
 
 \begin{abstract}
-Long-form generation in language models often collapses into repetitive loops well before the nominal context limit. This is commonly attributed to model capacity or training data, and addressed through costly retraining or post-training pipelines. We show that the sampling algorithm is a primary determinant of long-context output quality, improving outputs \textit{without} further training costs. Across ten open-weight models from 1B to 120B parameters, output lengths from 8K to 64K tokens, and more than 13{,}500 generations, full-distribution-aware samplers (P-less, Top-H, top-$n\sigma$) dominate automated metrics and human evaluation, while standard truncation (top-$p$, top-$k$) collapses into late-context repetition; min-$p$ falls in a middle tier. A 1{,}500-annotation Amazon Mechanical Turk study finds P-less winning more than nine in ten head-to-head pairings against a top-$p$ 0.9 baseline on a 120B model, with 10-gram repetition approaching zero at 64K tokens. A per-step selected-token rank diagnostic isolates the mechanism: standard truncation drives the rank to the argmax floor by the final quartile, while full-distribution-aware methods stay in a healthy band across the full window. This gap that widens with model scale, establishing sampler choice as an under-appreciated bottleneck for long-context generation in open-weight models. We frame long-context generation as sampling from outside the training distribution, and encourage further study for usecases like long-context agentic coding.
+Long-form generation in language models often collapses into repetitive loops well before the nominal context limit. This is commonly attributed to model capacity or training data, and addressed through costly retraining or post-training pipelines. We show that the sampling algorithm is a primary determinant of long-context output quality, improving outputs \textit{without} further training costs. Across ten open-weight models from 1B to 120B parameters, output lengths from 8K to 64K tokens, and more than 13{,}500 generations, full-distribution-aware samplers (P-less, Top-H, top-$n\sigma$) dominate automated metrics, while standard truncation (top-$p$, top-$k$) collapses into late-context repetition; min-$p$ falls in a middle tier. A per-step selected-token rank diagnostic isolates the mechanism: standard truncation drives the rank to the argmax floor by the final quartile, while full-distribution-aware methods stay in a healthy band across the full window. This gap that widens with model scale, establishing sampler choice as an under-appreciated bottleneck for long-context generation in open-weight models. We frame long-context generation as sampling from outside the training distribution, and encourage further study for usecases like long-context agentic coding.
 \end{abstract}
 
 %% ====================================================================
@@ -50,13 +50,12 @@ We present evidence for a different explanation: \textbf{the sampling algorithm 
 Standard truncation methods such as top-p~\citep{holtzman2020curious} and top-k~\citep{fan2018hierarchical}, which were designed and validated on short outputs, fail systematically as generation length grows.
 Adaptive methods that condition the candidate set on the shape of the token distribution at each step can prevent this collapse.
 
-Our study spans ten instruction-tuned open-weight models across four families (Llama, Qwen, Mistral, GPT-OSS) from 1B to 120B parameters, output lengths from 8K to 64K tokens, eight fiction genres, and evaluation through automatic diversity metrics, a 21-metric LLM-as-judge protocol with GPT-4o~\citep{zheng2023judging}, and a 1{,}500-annotation Amazon Mechanical Turk human evaluation.
+Our study spans ten instruction-tuned open-weight models across four families (Llama, Qwen, Mistral, GPT-OSS) from 1B to 120B parameters, output lengths from 8K to 64K tokens, eight fiction genres, and evaluation through automatic diversity metrics, and a 21-metric LLM-as-judge protocol with GPT-4o~\citep{zheng2023judging}.
 In total, the study comprises more than 13{,}500 individual generations.
 
 \paragraph{Contributions.}
 \begin{enumerate}[leftmargin=*,nosep]
 \item We demonstrate that the full-distribution-aware family~\citep{tang2024topnsigma,tan2025pless,baghaei2025toph} dominates judged long-context quality at both small and frontier scale, that min-p~\citep{nguyen2024minp} sits in a middle tier, and that standard truncation collapses.
-\item We run a 1{,}500-annotation MTurk study of sampler preference at frontier scale. On a 120B model, \pless{} wins more than nine in ten head-to-head pairings against the standard top-p 0.9 baseline.
 \item Building on the selected-token rank diagnostic discussed in the \pless{} literature~\citep{tan2025pless}, we trace the mechanical cause of late-context degeneration: standard truncation drives the rank to the argmax floor by the final quartile, while the full-distribution-aware family stays in the healthy 2.5--5 band throughout 64K tokens.
 \end{enumerate}
 
@@ -177,9 +176,6 @@ Following the \pless{} literature~\citep{tan2025pless}, we record the rank of th
 \paragraph{LLM-as-judge.}
 A 21-metric judge protocol with GPT-4o scores full-text manuscripts on coherence, long-range coherence, plot structure, pacing, prose quality, grammar and fluency, dialogue quality, creativity, world-building, characterization, non-repetitiveness, vocabulary diversity, scene diversity, engagement, emotional depth, immersion, beginning quality, middle quality, end quality, quality degradation, and overall quality. Scoring the entire output matters because many failure modes only emerge in the middle or end of a long sample~\citep{zheng2023judging}.
 
-\paragraph{Human evaluation (MTurk).}
-For the frontier-scale models we run a 1{,}500-annotation Amazon Mechanical Turk study covering 32K-token generations from 50 creative fiction prompts. Each task presents two completions side by side and asks the annotator to pick the winner based on narrative flow, coherence, and absence of repetitive loops, with order and placement randomized.
-
 
 %% ====================================================================
 \section{Results}
@@ -259,43 +255,6 @@ Top-p 0.9, $T{=}1.0$ & 0.089 & 0.931 & 0.048 \\
 \end{figure}
 
 
-\subsection{Human evaluation and LLM-as-judge at frontier scale}
-\label{sec:human_eval}
-
-Automatic diversity metrics track text degeneration but cannot assess whether the generated text remains narratively compelling. At frontier scale (Llama-3-70B-Instruct and GPT-OSS-120B) we run a 1{,}500-annotation MTurk study where evaluators pick the winner between two 32K-token completions based on narrative flow, coherence, and absence of repetitive loops, alongside our 21-metric LLM-as-judge protocol with GPT-4o.
-
-\begin{table}[h]
-\centering
-\caption{\textbf{At frontier scale, \pless{} wins more than nine in ten head-to-head pairings against the standard top-p 0.9 baseline.} Human evaluation (1,500-annotation MTurk win rate) and GPT-4o judge scores at 32K tokens. Win rates are computed head-to-head against a top-p 0.9 baseline. All adaptive samplers use $T{=}1.5$ to stress-test degeneration controllers.}
-\label{tab:human_eval}
-\resizebox{\textwidth}{!}{
-\begin{tabular}{lcccccc}
-\toprule
-\multirow{2}{*}{Sampler} & \multicolumn{2}{c}{Llama-3.1-8B} & \multicolumn{2}{c}{Llama-3-70B} & \multicolumn{2}{c}{GPT-OSS-120B} \\
-\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-& MTurk Win Rate & GPT-4o Score & MTurk Win Rate & GPT-4o Score & MTurk Win Rate & GPT-4o Score \\
-\midrule
-\best{\pless{}} ($T{=}1.5$) & \best{84.2\%} & \best{8.82} & \best{89.1\%} & \best{9.15} & \best{91.4\%} & \best{9.42} \\
-Top-H ($\alpha{=}0.4$) & 81.5\% & 8.51 & 86.3\% & 8.90 & 88.7\% & 9.21 \\
-Top-$n\sigma$ ($n{=}1$) & 77.8\% & 8.10 & 81.0\% & 8.44 & 84.1\% & 8.75 \\
-Min-p ($p{=}0.1$) & 72.1\% & 7.45 & 75.5\% & 7.82 & 79.0\% & 8.11 \\
-Top-k ($k{=}50$) & 31.4\% & 3.12 & 28.2\% & 2.95 & 24.5\% & 2.80 \\
-Top-p ($p{=}0.9$) & (Baseline) & 2.85 & (Baseline) & 2.40 & (Baseline) & 2.15 \\
-\bottomrule
-\end{tabular}
-}
-\end{table}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\textwidth]{figures/fig_human_eval.png}
-\caption{\textbf{Human and automated preference agree: the full-distribution-aware family leads, min-p sits in the middle, and the gap to standard truncation grows with model scale.} (a) MTurk pairwise win rate over the standard top-p 0.9 baseline across three model scales. The 50\% line marks the baseline self-tie. (b) GPT-4o 0--10 judge score across model scale.}
-\label{fig:human_eval}
-\end{figure}
-
-Both views agree (Table~\ref{tab:human_eval}, Figure~\ref{fig:human_eval}). The full-distribution-aware family wins both human preference and automated judging at every scale, with the gap to top-p 0.9 widening as model size grows. Min-p outperforms top-p and top-k by a large margin but still trails the full-distribution-aware family, consistent with the idea that thresholding \textit{only} on a maximum logit leaves the model vulnerable to mid-generation drift.
-
-
 \subsection{Tracking late-context collapse}
 \label{sec:mstr}
 
@@ -331,7 +290,7 @@ Top-p 0.9 & 3.60 & 1.02 & 0.912 \\
 \subsection{Frontier-scale campaign: 8B to 120B at 32K and 64K}
 \label{sec:scale_campaign}
 
-A final campaign covers Llama-3.1-8B at 32K, Llama-3-70B at 64K, and GPT-OSS-120B at 64K. Figure~\ref{fig:frontier_scale} highlights the largest-scale case (120B at 64K), where the gap between sampling families is most extreme. The full three-scale numerical breakdown is reported in Table~\ref{tab:human_eval} and Appendix~\ref{app:large32k}.
+A final campaign covers Llama-3.1-8B at 32K, Llama-3-70B at 64K, and GPT-OSS-120B at 64K. Figure~\ref{fig:frontier_scale} highlights the largest-scale case (120B at 64K), where the gap between sampling families is most extreme. The full three-scale numerical breakdown is reported in Appendix~\ref{app:large32k}.
 
 \begin{figure}[h]
 \centering
@@ -376,7 +335,7 @@ The primary failure point sits inside the sampler. When a model hallucinates or 
 The advantage of adaptive sampling grows with model size. Standard truncation collapses further on each step up the scale, while \pless{}, Top-H, and top-$n\sigma$ remain stable. This is consistent with larger models producing sharper distributions~\citep{kaplan2020scaling}, which amplifies the failure mode of fixed-size truncation.
 
 \paragraph{Judge-automatic metric divergence.}
-Automatic diversity wins do not always translate to higher judged prose quality, especially at very high temperature where lexically diverse but incoherent text is possible~\citep{holtzman2020curious,ippolito2019comparison}. The 21-metric study and frontier-scale human evaluation use richer rubrics to avoid this pitfall, with both favoring the full-distribution-aware family.
+Automatic diversity wins do not always translate to higher judged prose quality, especially at very high temperature where lexically diverse but incoherent text is possible~\citep{holtzman2020curious,ippolito2019comparison}. The 21-metric judge study uses a richer rubric to avoid this pitfall, and it favors the full-distribution-aware family.
 
 %% ====================================================================
 \section{Future Work}
@@ -394,7 +353,7 @@ Our study targets open-weight models from 1B to 120B parameters, which predate l
 \label{sec:conclusion}
 %% ====================================================================
 
-Sampling method choice is a first-order determinant of long-context generation quality. Standard truncation methods (top-p, top-k) suffer catastrophic final-quartile collapse at 16K, 32K, and 64K tokens, while adaptive methods prevent it. The full-distribution-aware family (\pless{}, Top-H, top-$n\sigma$) leads judged quality at small scale, dominates both automated metrics and large-scale human preference at frontier scale, and remains the only family to keep the selected-token rank in its healthy band across the full 64K window. Min-p outperforms standard truncation by a wide margin and sits in a clear middle tier. Improving long-context generation does not require larger models or longer training. A better sampling algorithm can be sufficient.
+Sampling method choice is a first-order determinant of long-context generation quality. Standard truncation methods (top-p, top-k) suffer catastrophic final-quartile collapse at 16K, 32K, and 64K tokens, while adaptive methods prevent it. The full-distribution-aware family (\pless{}, Top-H, top-$n\sigma$) leads judged quality at small scale, dominates automated metrics at frontier scale, and remains the only family to keep the selected-token rank in its healthy band across the full 64K window. Min-p outperforms standard truncation by a wide margin and sits in a clear middle tier. Improving long-context generation does not require larger models or longer training. A better sampling algorithm can be sufficient.
 
 
 %% ====================================================================
@@ -416,7 +375,7 @@ The study covers ten open-weight models from 1B to 120B parameters. Closed front
 All experiments use creative fiction prompts. We chose fiction because late-context collapse is clearly visible in long narratives, but other domains (technical writing, multi-turn dialogue, code generation, agentic chains) may exhibit different failure modes or interact differently with the sampler. We expect the qualitative ordering to transfer because the underlying mechanism (the global-summary feedback loop) is domain-independent, but we have not directly verified this.
 
 \paragraph{LLM-as-judge biases.}
-The 21-metric judge protocol with GPT-4o~\citep{zheng2023judging} introduces known biases (length, style preference, position effects). Our 1{,}500-annotation MTurk study mitigates this for the frontier-scale models, but the multi-model judged subset is too small for tight per-model confidence intervals on every metric. Coverage of additional human evaluations on the smaller models would further strengthen the result.
+The 21-metric judge protocol with GPT-4o~\citep{zheng2023judging} introduces known biases (length, style preference, position effects). We do not run a human evaluation, so every quality judgment in the paper rests on automatic metrics and LLM judges.
 
 \paragraph{Inference setup.}
 Models up to 32B run with 4-bit quantization on a single RTX 5090. The 70B and 120B runs use FP8 quantization on a 4xH100 cluster. Quantization can interact with sampling at very high temperature, where logit precision matters most. We have not tested fp16 baselines for the larger models.
