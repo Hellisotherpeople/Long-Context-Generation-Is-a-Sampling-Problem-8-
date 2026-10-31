@@ -122,8 +122,8 @@ The replication uses the ten models of the original study, updated to current ch
 \paragraph{Implementation.}
 All samplers are implemented as one vLLM logits processor. Native vLLM sampling is disabled (temperature 1, top-$p$ 1, top-$k$ 0), so the processor is the only truncation and temperature rule. Each rule is checked row by row against its authors' reference implementation. Per decoding step the processor logs the entropy, the top probability, the candidate-set size, and the rank of the sampled token.
 
-\paragraph{Protocols.}
-\emph{Forced length} disables the end-of-sequence token until a fixed length (16K tokens). \emph{Natural length} allows the model to stop and continues it with a ``Continue.'' turn up to a 16K-token budget. Fiction prompts cover eight genres, and non-fiction prompts cover API references, design documents, code walkthroughs, test plans, protocol specifications and postmortems. Temperatures are $T\in\{1.0,1.5,2.0\}$ unless noted. Every wave was pre-registered, with its grid and primary outcome fixed before any output was read.
+\paragraph{Benchmarks and protocols.}
+We evaluate on published benchmarks wherever one exists for the setting. Agentic coding uses SWE-bench Verified~\citep{jimenez2024swebench} with its official test harness. Long-form writing uses LongBench-Write~\citep{bai2025longwriter}, WritingBench~\citep{wu2025writingbench}, and the 75 English prompts of Arena-Write~\citep{wu2026longwriterzero} that require at least 2,000 words, all with natural stopping. Context-depth experiments continue PG-19 novels~\citep{rae2019compressive} from fixed depths. Because none of these benchmarks forces a model far past its natural stopping point, we add one controlled stress test: eight fiction and six non-fiction prompts (listed in Appendix~\ref{app:prompts}) generated to a forced length of 16K tokens, with end-of-sequence disabled. A natural-length variant of the same prompts lets the model stop and continues it with a ``Continue.'' turn up to the same budget. Temperatures are $T\in\{1.0,1.5,2.0\}$ unless noted. Every wave was pre-registered, with its grid and primary outcome fixed before any output was read.
 
 \paragraph{Outcomes.}
 A generation has a \emph{terminal loop} if, from some 1K-token window onward, at least 80\% of the remaining windows have 32-gram repetition at least 0.5. An LLM judge (gpt-oss-120b) scores 1.5K-token windows at fixed depths for fluency, coherence, non-repetition, interest and overall quality on a 1--10 scale, and scores the whole output globally. We call a generation \emph{healthy} if it has no terminal loop and every judged window has coherence at least 6. Lexical diversity metrics are reported only as diagnostics, because word salad scores perfectly on them.
@@ -153,15 +153,9 @@ The sampler therefore does not decide \emph{whether} a forced long generation su
 \subsection{The temperature response of the candidate set}
 \label{sec:mechanism}
 
-Table~\ref{tab:pool} reports the median number of tokens each rule actually admits per step, measured by the logits processor over the first 2,048 generated tokens, before loops set in. Two facts explain Table~\ref{tab:r1}.
+Figure~\ref{fig:pool} and Table~\ref{tab:pool} (Appendix~\ref{app:numbers}) report the median number of tokens each rule actually admits per step, measured by the logits processor over the first 2,048 generated tokens, before loops set in. Two facts explain Table~\ref{tab:r1}.
 
-\begin{table}[t]
-\centering
-\caption{\textbf{How the realized candidate set responds to temperature predicts how each sampler fails.} Median candidate-set size per decoding step over the first 2,048 tokens of the Table~\ref{tab:r1} generations (ten models). Singleton: fraction of steps at $T{=}1$ where only one token is admitted.}
-\label{tab:pool}
-\small
-\input{tables/cr_pool_r1_16k.tex}
-\end{table}
+
 
 \begin{figure}[t]
 \centering
@@ -193,15 +187,9 @@ What no setting buys is a healthy long generation. Under the pre-registered defi
 \subsection{Fixing the candidate set removes the cliff, when the set excludes the tail}
 \label{sec:ablation}
 
-If temperature hurts temperature-growing rules because it changes \emph{which} tokens are admitted, then deciding the candidate set at $T{=}1$ and applying temperature only inside it should remove the cliff. We pre-registered this prediction for top-$p$ and Top-H (judged quality at $t{=}2$ within one point of $T{=}1$) and tested it for five rules on the four models of Figure~\ref{fig:map} (Table~\ref{tab:tl}, 32 generations per cell).
+If temperature hurts temperature-growing rules because it changes \emph{which} tokens are admitted, then deciding the candidate set at $T{=}1$ and applying temperature only inside it should remove the cliff. We pre-registered this prediction for top-$p$ and Top-H (judged quality at $t{=}2$ within one point of $T{=}1$) and tested it for five rules on the four models of Figure~\ref{fig:map} (Figure~\ref{fig:tl}, numbers in Table~\ref{tab:tl}, 32 generations per cell).
 
-\begin{table}[t]
-\centering
-\caption{\textbf{Deciding the candidate set at $T{=}1$ rescues Top-H, min-$p$ and \pless{} at high temperature, but not top-$p$ or top-$k$.} Mean judged window quality (1--10), four models, 32 forced 8K-token generations per cell. Temperature first: the standard order (Figure~\ref{fig:map}). Candidate set fixed at $T{=}1$: truncation on the untempered distribution, then sampling at temperature $t$ inside the kept set.}
-\label{tab:tl}
-\small
-\input{tables/cr_r8.tex}
-\end{table}
+
 
 \begin{figure}[t]
 \centering
@@ -301,6 +289,30 @@ Qwen3.5-9B, mini-swe-agent, 250-step limit, 100 fixed instances, three temperatu
 \small
 \input{tables/cr_swe_r3a_swe.tex}
 \end{table}
+
+\section{Candidate sets and the temperature-last ablation in numbers}
+\label{app:numbers}
+
+\begin{table}[h]
+\centering
+\caption{\textbf{How the realized candidate set responds to temperature predicts how each sampler fails.} Median candidate-set size per decoding step over the first 2,048 tokens of the Table~\ref{tab:r1} generations (ten models). Singleton: fraction of steps at $T{=}1$ where only one token is admitted.}
+\label{tab:pool}
+\small
+\input{tables/cr_pool_r1_16k.tex}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{\textbf{Deciding the candidate set at $T{=}1$ rescues Top-H, min-$p$ and \pless{} at high temperature, but not top-$p$ or top-$k$.} Mean judged window quality (1--10), four models, 32 forced 8K-token generations per cell. Temperature first: the standard order (Figure~\ref{fig:map}). Candidate set fixed at $T{=}1$: truncation on the untempered distribution, then sampling at temperature $t$ inside the kept set.}
+\label{tab:tl}
+\small
+\input{tables/cr_r8.tex}
+\end{table}
+
+\section{Stress-test prompts}
+\label{app:prompts}
+
+\input{tables/cr_prompts.tex}
 
 \section{Non-fiction at 16K}
 \label{app:nonfic}
