@@ -68,7 +68,7 @@ def main():
         rep = json.load(open(rf)) if os.path.exists(rf) else None
         resolved = set(rep.get("resolved_ids", [])) if rep else set()
         # every graded prediction counts: empty patches, patches that do not apply and test timeouts are unresolved
-        evaluated = (set(rep.get("submitted_ids", [])) | set(rep.get("empty_patch_ids", []))) if rep else set()
+        evaluated = ((set(rep.get("submitted_ids", [])) | set(rep.get("empty_patch_ids", []))) - set(rep.get("error_ids", []))) if rep else set()
         preds = json.load(open(f"{d}/preds.json"))
         for iid in preds:  # every instance with a prediction counts, with or without a saved trajectory
             p = f"{d}/{iid}/{iid}.traj.json"

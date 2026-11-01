@@ -49,7 +49,7 @@ def start(d, workers, partial=False):
     partial runs simply evaluate finished instances early."""
     tag, cfg = d.split("/")[-2:]
     exp = d.rstrip("/").split("/")[-3]
-    run_id = f"{exp}__{tag}__{cfg}".replace("@", "_")
+    run_id = f"{exp}__{tag}__{cfg}".replace("@", "_").replace("+", "plus")
     preds = f"{d}/preds.json"
     if partial:
         snap = json.load(open(preds))
