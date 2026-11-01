@@ -34,7 +34,10 @@ def main(run):
     convs, keys = [], []
     for m in metas:
         q = bench[m["meta"]["pid"]]
-        resp = tok.decode(np.load(f"{run}/gen/{m['uid']}.npz")["tokens"], skip_special_tokens=True)
+        ids = np.load(f"{run}/gen/{m['uid']}.npz")["tokens"]
+        if len(ids) > 28000:  # critic context is 32K: keep head + tail of over-long responses
+            ids = np.concatenate([ids[:14000], ids[-14000:]])
+        resp = tok.decode(ids, skip_special_tokens=True)
         for c in q["checklist"]:
             k = (m["uid"], c.get("name", str(c)))
             if k in done:
