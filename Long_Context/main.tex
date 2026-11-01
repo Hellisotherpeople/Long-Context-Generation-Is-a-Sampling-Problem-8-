@@ -251,7 +251,7 @@ Agentic coding is long-context generation in its most practical form. The model 
 
 At $T{=}1$ the agentic result mirrors the fiction result. Every sampler resolves between 46\% and 56\% of instances, and no paired comparison with top-$p$ is significant (largest margin Top-H, 9 wins to 4, $p{=}0.27$). \pless{} runs the longest episodes (129 steps against 81--93 for every other rule), the agentic analogue of its near-greedy candidate set.
 
-At $T{=}1.5$ the rules separate completely. Top-$p$ and pure sampling resolve nothing, because their actions degrade into malformed output within a few turns (mean episode length 16 and 7 steps, with 4--6 format errors per episode). Top-H keeps 18\%. Min-$p$, \pless{} and top-$n\sigma$ keep or exceed their $T{=}1$ rate (48\%, 58\% and 52\%) and beat top-$p$ on every instance where the two disagree (24--0, 29--0 and 26--0, all $p<10^{-6}$, two-sided sign test). On the 100-instance grid with a 250-step limit the same split holds at $T{=}2$: top-$p$, top-$k$, Top-H and pure sampling resolve 0 of 100 instances, min-$p$, whose candidate set grows more slowly, resolves 16, and top-$n\sigma$ and \pless{} resolve 51 and 50 (Appendix~\ref{app:swe}).
+At $T{=}1.5$ the rules separate completely. Top-$p$ and pure sampling resolve nothing, because their actions degrade into malformed output within a few turns (mean episode length 16 and 7 steps, with 4--6 format errors per episode). Top-H keeps 18\%. Min-$p$, \pless{} and top-$n\sigma$ keep or exceed their $T{=}1$ rate (48\%, 58\% and 52\%) and beat top-$p$ on every instance where the two disagree (24--0, 29--0 and 26--0, all $p<10^{-6}$, two-sided sign test). On the 100-instance grid with a 250-step limit the same split holds at $T{=}2$: top-$p$, top-$k$, Top-H and pure sampling resolve 0 of 100 instances, min-$p$, whose candidate set grows more slowly, resolves 16, and top-$n\sigma$ and \pless{} resolve 51 and 50, against 33--37\% for every rule at $T{=}1$ (Appendix~\ref{app:swe}).
 
 
 
@@ -288,7 +288,7 @@ At $T{=}1$ no truncation rule prevents late-context collapse, and none beats top
 \section{SWE-bench Verified: 100-instance grid}
 \label{app:swe}
 
-Qwen3.5-9B, mini-swe-agent, 250-step limit, 100 fixed instances, three temperatures. Cells marked -- are still being graded.
+Qwen3.5-9B, mini-swe-agent, 250-step limit, 100 fixed instances, three temperatures. Resolve rates are over instances the official harness graded (a few instance-level Docker errors are excluded), and W/L pairs each rule with top-$p$ 0.9 on instances graded for both. At $T{=}1$ every rule resolves 33--37\% and no paired comparison is significant ($p\ge0.65$). At $T{=}1.5$ and $2$ the tail-excluding rules win every disagreement.
 
 \begin{table}[h]
 \centering
