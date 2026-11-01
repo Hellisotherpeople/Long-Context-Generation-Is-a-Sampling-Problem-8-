@@ -176,7 +176,7 @@ def fig_tl():
 # ---------------------------------------------------------------- 5. agentic
 def fig_swe():
     t = pd.DataFrame(json.load(open(f"{H}/results/cr_swe.json")))
-    t = t[t.graded >= t.n]
+    t = t[t.graded >= 0.9 * t.n]
     panels = [(e, m) for e, m in [("r3a_swe", "qwen3.5-9b"), ("r3b_swelong", "qwen3.5-9b"), ("r7_swe", "qwen3.5-27b"),
                                   ("r7_swe", "qwen3.5-35b-a3b"), ("r3c_swe", "gemma4-31b"), ("r7_swe", "gemma4-e4b")]
               if not t[(t.exp == e) & (t.model == m)].empty]

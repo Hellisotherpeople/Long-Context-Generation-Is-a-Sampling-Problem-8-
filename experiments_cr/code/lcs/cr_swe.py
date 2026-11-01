@@ -46,7 +46,7 @@ def main():
             cells = []
             for x in temps:
                 r = g[(g.sampler == smp) & (g["T"] == x)]
-                if r.empty or r.graded.iloc[0] < r.n.iloc[0]:
+                if r.empty or r.graded.iloc[0] < 0.9 * r.n.iloc[0]:
                     cells += ["--", "--"]; continue
                 r = r.iloc[0]
                 res = f"{100*r.resolved:.0f}\\%"
