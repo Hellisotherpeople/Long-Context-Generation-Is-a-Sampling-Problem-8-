@@ -63,3 +63,11 @@ First window high (7.6-8.0) for every rule at T=1.0, last window 1.5-2.0: same c
   Top-2 floor inert at T=1; at T=2 nsigma+floor loop 0.71 -> 0.00 at quality 3.3 (only loop-free non-salad config at T=2).
 - Context depth (PG-19, 6 models, D 2K-128K): PRE-REGISTERED ANSWER NO. tight-minus-tail quality gap ~0 at T<=1 and
   1.2-1.6 at T>=1.3 at every depth, no trend. T=1 entropy rises with depth only for Qwen3.5 models.
+
+## SWE replication + grading bug (2026-11-01)
+- R18, 100 fresh instances (Qwen3.5-9B): T=1 all 44-48%, no sig. T=2 top-p 0, Top-H 0, min-p 18% (18-0), top-nsigma 46% (46-0).
+- R16 independent repeat of long-horizon grid: top-nsigma 56%/60% at T=1.5/2 vs top-p 2%/0%.
+- BUG: run_id containing '+' broke the official harness (47/50 'error' instances, scored 0). Fixed (+ -> 'plus'), re-graded:
+  top-nsigma+top-2 floor = 42% / 22% at T=1.5/2 (format errors 1.4 / 9.6 per episode vs 0.04/0.06 bare). The floor HURTS agents.
+- Convention: SWE-bench standard (empty or unevaluable patches = unresolved). Briefly tried excluding harness errors; reverted
+  because it mixes denominators. Paper numbers unchanged by the round trip.
