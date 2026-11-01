@@ -1,0 +1,17 @@
+\begin{tabular}{lccccccccc}
+\toprule
+ & \multicolumn{3}{c}{$T{=}1.0$} & \multicolumn{3}{c}{$T{=}1.5$} & \multicolumn{3}{c}{$T{=}2.0$} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7} \cmidrule(lr){8-10}
+Sampler & Loop & First & Last & Loop & First & Last & Loop & First & Last \\
+\midrule
+Pure sampling & 0.66 & 6.8 & 3.6 & 0.00 & 2.6 & 1.1 & 0.00 & 1.1 & 1.0 \\
+Top-$k$ 50 & 0.59 & 6.6 & 3.4 & 0.16 & 6.6 & 2.9 & 0.00 & 3.9 & 1.6 \\
+Top-$p$ 0.9 & 0.69 & 6.6 & 3.8 & 0.25 & 3.2 & 1.1 & 0.00 & 2.0 & 1.0 \\
+Min-$p$ 0.1 & 0.66 & 7.1 & 3.5 & 0.66 & 7.2 & 3.3 & 0.28 & 7.2 & 3.5 \\
+Top-H 0.4 & 0.84 & 6.2 & 3.2 & 0.50 & 7.1 & 3.6 & 0.00 & 3.2 & 1.6 \\
+\pless{} & 0.84 & 6.3 & 2.7 & 0.91 & 7.1 & 3.0 & 0.75 & 6.8 & 2.8 \\
+Top-$n\sigma$ 1 & 0.84 & 6.9 & 3.2 & 0.78 & 6.8 & 2.9 & 0.78 & 7.2 & 2.9 \\
+\midrule
+Greedy & \multicolumn{3}{c}{0.91 / 6.7 / 2.8} &  &  &  &  &  &  \\
+\bottomrule
+\end{tabular}

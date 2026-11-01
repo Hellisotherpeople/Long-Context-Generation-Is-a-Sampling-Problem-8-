@@ -53,6 +53,7 @@ def main():
     ap.add_argument("--prio", default="048")
     ap.add_argument("--temps", default="")
     ap.add_argument("--rules", default="")
+    ap.add_argument("--exp", default="", help="override run/job dir name")
     a = ap.parse_args()
     sp = dict(SPEC[a.bench])
     if a.temps:
@@ -78,10 +79,10 @@ def main():
                                      "force_len": False, "lcs": {"T": T, "ops": ops},
                                      "meta": dict(meta, pid=it["pid"], sampler=name, T=T, seed=sd)})
         eng = {"max_model_len": sp["max_len"], "max_num_seqs": 512, "enable_prefix_caching": True}
-        job = {"job_id": f"{a.bench}/{model}", "model": src["model"], "tp": src.get("tp", 1), "engine": eng,
-               "out_dir": f"{H}/runs/{a.bench}/{model}", "requests": reqs, "max_len": sp["max_len"]}
-        os.makedirs(f"{H}/jobs/{a.bench}", exist_ok=True)
-        jf = f"{H}/jobs/{a.bench}/{model}.json"
+        job = {"job_id": f"{a.exp or a.bench}/{model}", "model": src["model"], "tp": src.get("tp", 1), "engine": eng,
+               "out_dir": f"{H}/runs/{a.exp or a.bench}/{model}", "requests": reqs, "max_len": sp["max_len"]}
+        os.makedirs(f"{H}/jobs/{a.exp or a.bench}", exist_ok=True)
+        jf = f"{H}/jobs/{a.exp or a.bench}/{model}.json"
         json.dump(job, open(jf, "w"))
         env = {}
         for fn in os.listdir(f"{H}/queue/done"):
@@ -90,7 +91,7 @@ def main():
         q = {"job": jf, "gpus": int(src.get("tp", 1)), "model_dir": src["model"], "kind": "gen"}
         if env:
             q["env"] = env
-        json.dump(q, open(f"{H}/queue/pending/{a.prio}_{a.bench}_{model}.json", "w"))
+        json.dump(q, open(f"{H}/queue/pending/{a.prio}_{a.exp or a.bench}_{model}.json", "w"))
         print(a.bench, model, "items", len(items), "requests", len(reqs))
 
 

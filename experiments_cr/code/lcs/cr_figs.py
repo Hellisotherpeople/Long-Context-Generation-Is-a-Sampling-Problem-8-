@@ -198,9 +198,26 @@ def fig_swe():
     save(fig, "fig_swe")
 
 
+def fig_bench():
+    aw = pd.DataFrame(json.load(open(f"{H}/results/cr_arenawrite.json")))
+    lb = pd.read_parquet(f"{H}/results/lbwrite_cells.parquet").groupby(["sampler", "T"]).S.mean().reset_index()
+    fig, axes = plt.subplots(1, 2, figsize=(5.6, 2.2))
+    for ax, (d, col, yl, ylim) in zip(axes, [(aw, "healthy", "Arena-Write: healthy generations", (-0.03, 0.85)),
+                                              (lb, "S", "LongBench-Write score $S$", (0, 90))]):
+        for k in ORDER + ["temp"]:
+            g = d[d.sampler == k].sort_values("T"); g = g[g["T"] > 0]
+            if len(g): line(ax, g["T"].values, g[col].values, k, label=False)
+        ax.set_xticks([1.0, 1.5, 2.0]); ax.set_xlim(0.9, 2.1); ax.set_ylim(*ylim); ax.set_xlabel("Temperature"); ax.set_title(yl, fontsize=8)
+    handles = [mpl.lines.Line2D([], [], color=S[k][1], marker=S[k][2], mec="white", lw=1.6, ls=":" if k == "temp" else "-", label=S[k][0])
+               for k in ["nsigma1", "pless", "minp0.1", "toph0.4", "topk50", "topp0.9", "temp"]]
+    fig.legend(handles=handles, ncol=1, loc="center left", bbox_to_anchor=(0.99, 0.5), fontsize=7)
+    fig.subplots_adjust(wspace=0.3)
+    save(fig, "fig_bench")
+
+
 if __name__ == "__main__":
     style()
-    want = sys.argv[1:] or ["hero", "pool", "map", "tl", "swe"]
+    want = sys.argv[1:] or ["hero", "pool", "map", "tl", "swe", "bench"]
     for w in want:
         try:
             globals()[f"fig_{w}"]()
