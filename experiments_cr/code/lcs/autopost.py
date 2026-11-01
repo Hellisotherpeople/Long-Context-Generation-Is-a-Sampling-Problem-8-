@@ -55,7 +55,7 @@ def main():
                 continue
             if exp == "lbwrite":  # LongBench-Write official quality rubric, full responses -> 40K judge context
                 cmd = [sys.executable, "-m", "lcs.make_post", "judge", "--exps", exp, "--models", model, "--tasks", "lbw",
-                       "--max-model-len", "40960", "--prio", "016"]
+                       "--max-model-len", "65536", "--prio", "016"]
                 out = subprocess.run(cmd, cwd=f"{H}/code", capture_output=True, text=True)
                 print(time.strftime("%m-%d %H:%M:%S"), name, "->", out.stdout.strip() or out.stderr.strip()[-300:], flush=True)
                 continue

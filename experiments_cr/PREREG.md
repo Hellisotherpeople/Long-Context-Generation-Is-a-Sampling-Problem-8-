@@ -55,3 +55,6 @@ LongBench-Write (Bai et al., LongWriter, ICLR 2025; 60 EN prompts, 100-20K words
 and WritingBench (Wu et al., 2025; 555 EN queries) on 4 models. 7 SLIM samplers + greedy, T{1.0,1.5,2.0}, natural stopping.
 Primary: official LongBench-Write S_l and S_q (judge = gpt-oss-120b with the official rubric) and WritingBench critic score.
 Prediction (stated before running): no significant separation at T=1; at T=2 tail-admitting rules drop far more than top-nsigma.
+### R12 amendment: Llama-3.1-8B D=131072 exceeds its 131,072-token window once 8K generation is added (CUDA assert); that cell is dropped. Max depth for Llama-3.1-8B is 64K.
+## R12b (2026-11-01): context depth on Gemma-4-12B and Qwen3.5-27B, D{2K,16K,64K}, same grid/outcomes as R12.
+## R15b (2026-11-01): Arena-Write with 2 samples on 6 models (adds Mistral-Nemo-12B, Nemotron-3-30B-A3B, OLMo-3-7B); same outcomes as R15.
