@@ -153,11 +153,11 @@ Forced length is a stress test. Published long-writing benchmarks let the model 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.78\textwidth]{figures/fig_bench.pdf}
-\caption{\textbf{On published long-writing benchmarks with natural stopping, the samplers are tied at $T{=}1$ and separate by their tail behavior as temperature rises.} Left: fraction of Arena-Write generations that are healthy (no terminal loop and judged coherence at least 6 in every window), up to eight models including Llama-3.3-70B, gpt-oss-120b and Qwen3.5-122B-A10B. Right: official LongBench-Write score $S$ (0--100), six models.}
+\caption{\textbf{On published long-writing benchmarks with natural stopping, the samplers are tied at $T{=}1$ and separate by their tail behavior as temperature rises.} Left: fraction of Arena-Write generations that are healthy (no terminal loop and judged coherence at least 6 in every window), up to eight models including Llama-3.3-70B, gpt-oss-120b and Qwen3.5-122B-A10B. Right: official LongBench-Write score $S$ (0--100), seven models.}
 \label{fig:bench}
 \end{figure}
 
-At $T{=}1$ every rule is healthy on 72--75\% of Arena-Write generations and scores 78--81 on LongBench-Write, the same tie as under forced length. At $T{=}2$, top-$n\sigma$ is unchanged on both benchmarks (0.75 healthy, $S{=}80.5$), \pless{} and min-$p$ lose a little and a lot respectively (0.67 and 0.52 healthy), and the tail-admitting rules collapse: Top-H 0.15, top-$k$ 0.23 and top-$p$ 0.01 healthy, with LongBench-Write scores of 39, 47 and 24. Without forced length the healthy rate is far from zero, so these benchmarks rank the rules directly, and they rank them the same way the forced-length grid and the candidate-set measurements do.
+At $T{=}1$ every rule is healthy on 72--75\% of Arena-Write generations and scores 77--79 on LongBench-Write, the same tie as under forced length. At $T{=}2$, top-$n\sigma$ is unchanged on both benchmarks (0.75 healthy, $S{=}79.0$), \pless{} and min-$p$ lose a little and a lot respectively (0.67 and 0.52 healthy), and the tail-admitting rules collapse: Top-H 0.15, top-$k$ 0.23 and top-$p$ 0.01 healthy, with LongBench-Write scores of 40, 45 and 22. Without forced length the healthy rate is far from zero, so these benchmarks rank the rules directly, and they rank them the same way the forced-length grid and the candidate-set measurements do.
 
 \subsection{The temperature response of the candidate set}
 \label{sec:mechanism}
@@ -222,7 +222,7 @@ The forced-length results replicate under every check we ran (Appendix~\ref{app:
 \subsection{What a sampling stack can and cannot fix}
 \label{sec:stack}
 
-If loops are the problem and tail-admission is the cost of escaping them, two additions to the sampler are natural: a repetition penalty, and a floor that always keeps the top two tokens so that a tight rule can never be greedy. We tested both on top of each tight and tail-admitting rule, on seven of the ten models (Table~\ref{tab:stack}). We had predicted that DRY~\citep{weidmann2024dry} combined with a tight rule at $T{\ge}1.5$ would raise judged quality by at least one point. That prediction failed. DRY cuts the loop rate at $T{=}1$ from 95--100\% to 27--38\% for every rule, but judged quality moves by only 0.1--0.3 points, because the penalty replaces verbatim loops with text that is varied but no better. The top-2 floor does almost nothing at $T{=}1$, and the reason is instructive: a second candidate with probability $10^{-6}$ is never sampled. Its effect appears only with temperature. At $T{=}2$, top-$n\sigma$ plus the floor eliminates terminal loops entirely (from 71\% to 0\%) while keeping its judged quality (3.3), and it is the only loop-free configuration at $T{=}2$ that is not word salad (top-$p$, Top-H and min-$p$ with the floor score 1.0, 1.3 and 2.1). A tail-excluding rule, an escape floor and an elevated temperature together remove loops without admitting the noise tail. They do not yet produce good long text, because the quality ceiling of these models at 16K is low under every sampler. On Arena-Write with natural stopping (three models), where loops are already rare, the floor changes little: top-$n\sigma$ is healthy on 0.96 of generations at $T{=}2$ with the floor against 0.93 without, and the floor lowers \pless{} at $T{=}2$ (0.62 against 0.77). In agentic coding the floor is harmful (Section~\ref{sec:agentic}).
+If loops are the problem and tail-admission is the cost of escaping them, two additions to the sampler are natural: a repetition penalty, and a floor that always keeps the top two tokens so that a tight rule can never be greedy. We tested both on top of each tight and tail-admitting rule, on eight of the ten models, including Llama-3.3-70B and gpt-oss-120b (Table~\ref{tab:stack}). We had predicted that DRY~\citep{weidmann2024dry} combined with a tight rule at $T{\ge}1.5$ would raise judged quality by at least one point. That prediction failed. DRY cuts the loop rate at $T{=}1$ from 95--100\% to 27--38\% for every rule, but judged quality moves by at most 0.2 points in either direction at any temperature, because the penalty replaces verbatim loops with text that is varied but no better. The top-2 floor does almost nothing at $T{=}1$, and the reason is instructive: a second candidate with probability $10^{-6}$ is never sampled. Its effect appears only with temperature. At $T{=}2$, top-$n\sigma$ plus the floor nearly eliminates terminal loops (from 75\% to 2\%) while keeping its judged quality (3.3), and it is the only loop-free configuration at $T{=}2$ that is not word salad (top-$p$, Top-H and min-$p$ with the floor score 1.0, 1.3 and 2.4). A tail-excluding rule, an escape floor and an elevated temperature together remove loops without admitting the noise tail. They do not yet produce good long text, because the quality ceiling of these models at 16K is low under every sampler. On Arena-Write with natural stopping (three models), where loops are already rare, the floor changes little: top-$n\sigma$ is healthy on 0.96 of generations at $T{=}2$ with the floor against 0.93 without, and the floor lowers \pless{} at $T{=}2$ (0.62 against 0.77). In agentic coding the floor is harmful (Section~\ref{sec:agentic}).
 
 \subsection{Context depth alone does not make the sampler matter more}
 \label{sec:depth}
@@ -353,7 +353,7 @@ Non-fiction behaves the same way (Appendix~\ref{app:nonfic}, six models). At $T{
 \subsection{Second seed, newer models, second judge}
 \label{app:robust2}
 
-Three checks support the forced-length results. A second seed on all ten models (80 generations per cell, Table~\ref{tab:r9}, Appendix~\ref{app:robust}) reproduces Table~\ref{tab:r1}: at $T{=}1$ top-$p$, min-$p$, Top-H, \pless{} and top-$n\sigma$ loop in 96--100\% of generations, and at $T{=}2$ top-$n\sigma$ opens at 5.3 while top-$p$ opens at 1.0. Four newer models (Gemma-4-31B, OLMo-3.1-32B, Qwen3.5-27B, Nemotron-3-Nano-30B-A3B, Table~\ref{tab:r10}) loop less often at $T{=}1$ (66--84\% for the five truncation rules) but show the same split at $T{=}2$, where top-$n\sigma$ opens at 7.2 and top-$p$ at 2.0. Finally, a second judge from a different family, GLM-4.5-Air, rescored all 8,796 windows of the ten-model grid. The two judges agree at Spearman $\rho{=}0.74$ on individual windows and $\rho{=}0.92$ on the 22 sampler-by-temperature cell means, so the cell-level conclusions do not depend on the choice of judge.
+Three checks support the forced-length results. A second seed on all ten models (80 generations per cell, Table~\ref{tab:r9}, Appendix~\ref{app:robust}) reproduces Table~\ref{tab:r1}: at $T{=}1$ top-$p$, min-$p$, Top-H, \pless{} and top-$n\sigma$ loop in 96--100\% of generations, and at $T{=}2$ top-$n\sigma$ opens at 5.3 while top-$p$ opens at 1.0. Five newer models (Gemma-4-31B, OLMo-3.1-32B, Qwen3.5-27B, Nemotron-3-Nano-30B-A3B and the 110B mixture-of-experts GLM-4.5-Air, Table~\ref{tab:r10}) loop less often at $T{=}1$ (52--78\% for the five truncation rules) but show the same split at $T{=}2$, where top-$n\sigma$ opens at 7.2 and top-$p$ at 1.8. Finally, a second judge from a different family, GLM-4.5-Air, rescored all 8,796 windows of the ten-model grid. The two judges agree at Spearman $\rho{=}0.74$ on individual windows and $\rho{=}0.92$ on the 22 sampler-by-temperature cell means, so the cell-level conclusions do not depend on the choice of judge.
 
 
 \begin{table}[h]
@@ -366,7 +366,7 @@ Three checks support the forced-length results. A second seed on all ten models 
 
 \begin{table}[h]
 \centering
-\caption{Forced-length grid on four newer models (Gemma-4-31B, OLMo-3.1-32B, Qwen3.5-27B, Nemotron-3-Nano-30B-A3B), 32 generations per cell.}
+\caption{Forced-length grid on five newer models (Gemma-4-31B, OLMo-3.1-32B, Qwen3.5-27B, Nemotron-3-Nano-30B-A3B, GLM-4.5-Air), 40 generations per cell.}
 \label{tab:r10}
 \small
 \input{tables/cr_r10_large.tex}
@@ -374,7 +374,7 @@ Three checks support the forced-length results. A second seed on all ten models 
 
 \begin{table}[h]
 \centering
-\caption{Sampling stacks on seven models (forced 16K fiction). Loop: terminal-loop rate. Quality: mean judged window quality. ``none'' rows are the bare rules on the same seven models.}
+\caption{Sampling stacks on eight models including Llama-3.3-70B and gpt-oss-120b (forced 16K fiction). Loop: terminal-loop rate. Quality: mean judged window quality. ``none'' rows are the bare rules on the same seven models.}
 \label{tab:stack}
 \small
 \input{tables/cr_stack.tex}
