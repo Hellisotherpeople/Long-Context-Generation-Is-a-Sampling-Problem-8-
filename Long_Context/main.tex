@@ -150,6 +150,20 @@ Raising the temperature is the obvious way to break a loop. At $T{=}2$ it remove
 
 The sampler therefore does not decide \emph{whether} a forced long generation survives. It decides \emph{how} the generation fails once temperature is used to escape the loop.
 
+\subsection{The same split on published long-writing benchmarks}
+\label{sec:bench}
+
+Forced length is a stress test. Published long-writing benchmarks let the model stop on its own and score what it writes against the task. Figure~\ref{fig:bench} reports the 75 English Arena-Write prompts that ask for at least 2,000 words~\citep{wu2026longwriterzero}, judged window by window with the protocol of Section~\ref{sec:setup}, and the official LongBench-Write score~\citep{bai2025longwriter}, which combines length adherence and judged quality (numbers in Table~\ref{tab:bench}, Appendix~\ref{app:numbers}).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.86\textwidth]{figures/fig_bench.pdf}
+\caption{\textbf{On published long-writing benchmarks with natural stopping, the samplers are tied at $T{=}1$ and separate by their tail behavior as temperature rises.} Left: fraction of Arena-Write generations that are healthy (no terminal loop and judged coherence at least 6 in every window), up to eight models including Llama-3.3-70B, gpt-oss-120b and Qwen3.5-122B-A10B. Right: official LongBench-Write score $S$ (0--100), six models.}
+\label{fig:bench}
+\end{figure}
+
+At $T{=}1$ every rule is healthy on 72--75\% of Arena-Write generations and scores 78--81 on LongBench-Write, the same tie as under forced length. At $T{=}2$, top-$n\sigma$ is unchanged on both benchmarks (0.75 healthy, $S{=}80.5$), \pless{} and min-$p$ lose a little and a lot respectively (0.67 and 0.52 healthy), and the tail-admitting rules collapse: Top-H 0.15, top-$k$ 0.23 and top-$p$ 0.01 healthy, with LongBench-Write scores of 39, 47 and 24. Without forced length the healthy rate is far from zero, so these benchmarks rank the rules directly, and they rank them the same way the forced-length grid and the candidate-set measurements do.
+
 \subsection{The temperature response of the candidate set}
 \label{sec:mechanism}
 
@@ -205,19 +219,28 @@ The refined mechanism is therefore about the tail, not about temperature as such
 \subsection{Natural-length continuation and non-fiction}
 \label{sec:natural}
 
-Forcing a model past the point where it wants to stop is an artificial stress, so we repeat the replication under a protocol closer to how long outputs are produced in practice. The model may emit end-of-sequence at any time, and each time it stops we append a ``Continue.'' turn, up to a 16K-token budget with 4K-token turns (Table~\ref{tab:r4}, seven of the nine models judged so far).
+Forcing a model past the point where it wants to stop is an artificial stress, so we repeat the replication under a protocol closer to how long outputs are produced in practice (Table~\ref{tab:r4}, Appendix~\ref{app:robust}). The model may emit end-of-sequence at any time, and each time it stops we append a ``Continue.'' turn, up to a 16K-token budget with 4K-token turns (Table~\ref{tab:r4}, seven of the nine models judged so far).
 
-\begin{table}[t]
-\centering
-\caption{\textbf{Letting the model stop and continue halves the loop rate of several rules but still does not separate them at $T{=}1$.} Natural-length multi-turn continuation (``Continue.'' after each stop, 16K-token budget), seven models, eight fiction genres, about 42 generations per cell. Columns as in Table~\ref{tab:r1}.}
-\label{tab:r4}
-\small
-\input{tables/cr_r4_mt.tex}
-\end{table}
+
 
 Natural length helps every rule. At $T{=}1$ the final judged window rises from about 2.4 under forced length to 3.5--3.9, and the loop rate of top-$p$ falls from 0.96 to 0.56 and of top-$n\sigma$ from 1.00 to 0.51. The rules remain nearly inseparable on quality at $T{=}1$: final-window means span only 3.5--3.9, and of the 21 pairs of rules, only Top-H and top-$k$ have non-overlapping bootstrap intervals. \pless{} remains the most loop-prone rule at every temperature (0.84--0.88 at $T{\le}1.5$), consistent with its near-greedy candidate set. Raising the temperature reproduces the forced-length split almost exactly. At $T{=}2$, top-$p$, top-$k$, Top-H and pure sampling score 1.0--1.8 on their first window, min-$p$ and \pless{} fall to 2.7--2.8, and top-$n\sigma$ holds 5.1, while still looping in 36\% of generations.
 
 Non-fiction behaves the same way (Appendix~\ref{app:nonfic}, six models). At $T{=}1$ every rule ends at 3.3--3.6 on the final window, and at $T{=}1.5$ top-$p$ and top-$k$ fall to a first-window score of 3.1 and 4.4 while top-$n\sigma$ and min-$p$ hold theirs (6.3 to 6.6 and 6.3 to 6.5).
+
+\subsection{Robustness: a second seed, larger models, a second judge}
+\label{sec:robust}
+
+Three checks support the forced-length results. A second seed on all ten models (80 generations per cell, Table~\ref{tab:r9}, Appendix~\ref{app:robust}) reproduces Table~\ref{tab:r1}: at $T{=}1$ top-$p$, min-$p$, Top-H, \pless{} and top-$n\sigma$ loop in 96--100\% of generations, and at $T{=}2$ top-$n\sigma$ opens at 5.3 while top-$p$ opens at 1.0. Four newer models (Gemma-4-31B, OLMo-3.1-32B, Qwen3.5-27B, Nemotron-3-Nano-30B-A3B, Table~\ref{tab:r10}) loop less often at $T{=}1$ (66--84\% for the five truncation rules) but show the same split at $T{=}2$, where top-$n\sigma$ opens at 7.2 and top-$p$ at 2.0. Finally, a second judge from a different family, GLM-4.5-Air, rescored all 8,796 windows of the ten-model grid. The two judges agree at Spearman $\rho{=}0.74$ on individual windows and $\rho{=}0.92$ on the 22 sampler-by-temperature cell means, so the cell-level conclusions do not depend on the choice of judge.
+
+\subsection{What a sampling stack can and cannot fix}
+\label{sec:stack}
+
+If loops are the problem and tail-admission is the cost of escaping them, two additions to the sampler are natural: a repetition penalty, and a floor that always keeps the top two tokens so that a tight rule can never be greedy. We tested both on top of each tight and tail-admitting rule, on seven of the ten models (Table~\ref{tab:stack}). We had predicted that DRY~\citep{weidmann2024dry} combined with a tight rule at $T{\ge}1.5$ would raise judged quality by at least one point. That prediction failed. DRY cuts the loop rate at $T{=}1$ from 95--100\% to 27--38\% for every rule, but judged quality moves by only 0.1--0.3 points, because the penalty replaces verbatim loops with text that is varied but no better. The top-2 floor does almost nothing at $T{=}1$, and the reason is instructive: a second candidate with probability $10^{-6}$ is never sampled. Its effect appears only with temperature. At $T{=}2$, top-$n\sigma$ plus the floor eliminates terminal loops entirely (from 71\% to 0\%) while keeping its judged quality (3.3), and it is the only loop-free configuration at $T{=}2$ that is not word salad (top-$p$, Top-H and min-$p$ with the floor score 1.0, 1.3 and 2.1). A tail-excluding rule, an escape floor and an elevated temperature together remove loops without admitting the noise tail. They do not yet produce good long text, because the quality ceiling of these models at 16K is low under every sampler.
+
+\subsection{Context depth alone does not make the sampler matter more}
+\label{sec:depth}
+
+The title invites a direct test: does a longer \emph{input} context push models into the regime where the sampler matters? We continued PG-19 novels~\citep{rae2019compressive} from depths of 2K, 16K, 64K and 128K tokens on six long-context models and measured both the model's entropy at $T{=}1$ and the judged quality gap between tail-excluding rules (min-$p$, \pless{}, top-$n\sigma$) and tail-admitting rules (top-$p$, top-$k$, Top-H, pure sampling) (Table~\ref{tab:depth}). The pre-registered answer is no. The gap is about zero at $T{\le}1$ at every depth and about 1.2--1.6 points at $T{=}1.3$ and $1.6$ at every depth, with no trend. Entropy at $T{=}1$ rises with depth for the three Qwen3.5 models (for example from 1.16 to 1.70 nats on Qwen3.5-35B-A3B) but is flat or falling for the others. What makes long generation a sampling problem is not the length of the context the model reads. It is the length of what the model writes, which is where loops form and where temperature is needed to escape them.
 
 \subsection{Agentic coding}
 \label{sec:agentic}
@@ -249,6 +272,17 @@ Temperature is not a knob practitioners turn up for fun in agentic settings, but
 %% ====================================================================
 \section{Discussion}
 \label{sec:discussion}
+%% ====================================================================
+
+\paragraph{Why adaptivity does not prevent loops.}
+The adaptive rules do what they claim: their candidate sets shrink when the model is confident. A repetition loop is a state of extreme confidence, so inside a loop these rules keep one token, and \pless{} at $T{=}1$ keeps one token on 93\% of steps even outside loops. Adaptivity avoids the noise tail but cannot escape a loop once it starts. The only escape the samplers offer is temperature, and temperature is exactly where they split.
+
+\paragraph{Why the tail decides.}
+A rule whose candidate set grows with $T$ couples two things a practitioner wants to control separately: how much randomness to inject among plausible tokens, and how far into the implausible tail to reach. Top-$n\sigma$ decouples them by construction, and the temperature-last ablation shows that any rule with a tight set at $T{=}1$ can be decoupled the same way. That is why top-$n\sigma$ is the only rule without a cliff in Figure~\ref{fig:map} and on both published benchmarks, and the only one whose agentic resolve rate is unchanged from $T{=}1$ to $T{=}2$.
+
+\paragraph{Long context as a sampling problem.}
+Sampling is not a cure for late-context collapse: forced to 16K tokens, every model and every rule we tested degrades, and context depth alone does not change which sampler wins. But long generation keeps pushing models into the regime where the sampler matters, through the loops that form in what they write, the elevated temperatures used to escape those loops, and the temperatures used for exploration in best-of-$n$ selection and reinforcement-learning rollouts. In that regime the sampler decides whether the generation, or the agent, keeps working at all.
+
 %% ====================================================================
 
 \paragraph{What the sampler controls.}
@@ -307,6 +341,57 @@ Qwen3.5-9B, mini-swe-agent, 250-step limit, 100 fixed instances, three temperatu
 \label{tab:tl}
 \small
 \input{tables/cr_r8.tex}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Published long-writing benchmarks, numbers behind Figure~\ref{fig:bench}.}
+\label{tab:bench}
+\small
+\resizebox{\textwidth}{!}{\input{tables/cr_bench.tex}}
+\end{table}
+
+\section{Robustness, sampling stacks and context depth in numbers}
+\label{app:robust}
+
+\begin{table}[h]
+\centering
+\caption{Second seed of the forced-length replication, all ten models, 80 generations per cell. Columns as in Table~\ref{tab:r1}.}
+\label{tab:r9}
+\small
+\input{tables/cr_r9_16k_s2.tex}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Forced-length grid on four newer models (Gemma-4-31B, OLMo-3.1-32B, Qwen3.5-27B, Nemotron-3-Nano-30B-A3B), 32 generations per cell.}
+\label{tab:r10}
+\small
+\input{tables/cr_r10_large.tex}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Sampling stacks on seven models (forced 16K fiction). Loop: terminal-loop rate. Quality: mean judged window quality. ``none'' rows are the bare rules on the same seven models.}
+\label{tab:stack}
+\small
+\input{tables/cr_stack.tex}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Continuing PG-19 novels from increasing context depth, 8K generated tokens. Quality gap: mean judged quality of tail-excluding rules minus tail-admitting rules. Entropy: mean per-step entropy (nats) of the untempered distribution over the first 2K generated tokens at $T{=}1$.}
+\label{tab:depth}
+\small
+\input{tables/cr_depth.tex}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{\textbf{Letting the model stop and continue halves the loop rate of several rules but still does not separate them at $T{=}1$.} Natural-length multi-turn continuation (``Continue.'' after each stop, 16K-token budget), seven models, eight fiction genres, about 42 generations per cell. Columns as in Table~\ref{tab:r1}.}
+\label{tab:r4}
+\small
+\input{tables/cr_r4_mt.tex}
 \end{table}
 
 \section{Stress-test prompts}
