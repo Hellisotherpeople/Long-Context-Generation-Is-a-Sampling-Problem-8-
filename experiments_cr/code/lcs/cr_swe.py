@@ -12,7 +12,7 @@ ORDER = list(NAME)
 
 def main():
     df = pd.read_parquet(f"{H}/results/swe_inst.parquet")
-    df = df[df.exp.isin(["r3a_swe", "r3b_swelong", "r3c_swe"])].copy()
+    df = df[df.exp.isin(["r3a_swe", "r3b_swelong", "r3c_swe", "r7_swe", "r16_swe_s2", "r18_swe_new100"])].copy()
     df["sampler"] = df.config.str.split("@").str[0]
     df["T"] = df.config.str.extract(r"@T([0-9.]+)").astype(float)
     out, txt = [], []

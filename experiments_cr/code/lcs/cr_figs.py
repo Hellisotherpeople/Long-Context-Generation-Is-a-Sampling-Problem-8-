@@ -180,17 +180,17 @@ def fig_swe():
     panels = [(e, m) for e, m in [("r3a_swe", "qwen3.5-9b"), ("r3b_swelong", "qwen3.5-9b"), ("r7_swe", "qwen3.5-27b"),
                                   ("r7_swe", "qwen3.5-35b-a3b"), ("r3c_swe", "gemma4-31b"), ("r7_swe", "gemma4-e4b")]
               if not t[(t.exp == e) & (t.model == m)].empty]
-    title = {("r3a_swe", "qwen3.5-9b"): "Qwen3.5-9B, 250 steps", ("r3b_swelong", "qwen3.5-9b"): "Qwen3.5-9B, 500 steps",
-             ("r7_swe", "qwen3.5-27b"): "Qwen3.5-27B", ("r7_swe", "qwen3.5-35b-a3b"): "Qwen3.5-35B-A3B",
-             ("r3c_swe", "gemma4-31b"): "Gemma-4-31B", ("r7_swe", "gemma4-e4b"): "Gemma-4-E4B"}
-    fig, axes = plt.subplots(1, len(panels), figsize=(min(7.0, 1.45 * len(panels) + 0.4), 1.95), sharey=True, squeeze=False)
+    title = {("r3a_swe", "qwen3.5-9b"): "Qwen3.5-9B\n100 tasks, 250 steps", ("r3b_swelong", "qwen3.5-9b"): "Qwen3.5-9B\n50 tasks, 500 steps",
+             ("r7_swe", "qwen3.5-27b"): "Qwen3.5-27B\n50 tasks, 500 steps", ("r7_swe", "qwen3.5-35b-a3b"): "Qwen3.5-35B-A3B\n50 tasks, 500 steps",
+             ("r3c_swe", "gemma4-31b"): "Gemma-4-31B\n50 tasks, 250 steps", ("r7_swe", "gemma4-e4b"): "Gemma-4-E4B\n50 tasks, 500 steps"}
+    fig, axes = plt.subplots(1, len(panels), figsize=(7.0, 2.1), sharey=True, squeeze=False)
     for ax, (e, m) in zip(axes[0], panels):
         g = t[(t.exp == e) & (t.model == m)]
         for k in ORDER:
             r = g[g.sampler == k].sort_values("T")
             if len(r): ax.plot(r["T"], 100 * r.resolved, color=S[k][1], marker=S[k][2], ms=4, mec="white", mew=0.5, lw=1.5, zorder=3)
-        ax.set_title(title[(e, m)], fontsize=7.5); ax.set_xlabel("Temperature")
-        ax.set_xticks([1.0, 1.5, 2.0]); ax.set_xlim(0.9, 2.1); ax.set_ylim(-3, 70)
+        ax.set_title(title[(e, m)], fontsize=6.8, loc="center"); ax.set_xlabel("Temperature")
+        ax.set_xticks([1.0, 1.5, 2.0]); ax.set_xlim(0.9, 2.1); ax.set_ylim(-3, 78)
     axes[0][0].set_ylabel("SWE-bench Verified resolved (%)")
     handles = [mpl.lines.Line2D([], [], color=S[k][1], marker=S[k][2], mec="white", lw=1.5, label=S[k][0]) for k in ORDER]
     fig.legend(handles=handles, ncol=6, loc="lower center", bbox_to_anchor=(0.5, -0.12), fontsize=7, handlelength=1.6, columnspacing=1.1)
