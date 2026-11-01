@@ -242,10 +242,12 @@ Agentic coding is long-context generation in its most practical form. The model 
 \input{tables/cr_swe_r3b_swelong.tex}
 \end{table}
 
+The split replicates at scale (Figure~\ref{fig:swe}). On Qwen3.5-27B and Qwen3.5-35B-A3B with the long-horizon harness, every rule resolves 56--72\% at $T{=}1$ with no significant paired difference, while at $T{=}2$ top-$p$, top-$k$, Top-H and pure sampling resolve nothing and top-$n\sigma$ resolves 72\% and 58\% (36--0 and 29--0 against top-$p$). Gemma-4 is the exception that fits the mechanism. On Gemma-4-31B no rule separates at $T{=}1.5$, and the candidate sets explain why: top-$p$ still admits a median of one token per step at $T{=}1.5$ (33 at $T{=}2$), where the Qwen, OLMo and Llama models admit tens of thousands. We attribute this to Gemma's soft-capped final logits, which keep the distribution peaked under temperature, though we did not isolate the cap experimentally. Gemma-4-E4B resolves at most 12\% under any rule, too few to compare.
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig_swe.pdf}
-\caption{\textbf{Temperature-growing rules break coding agents. Tight rules keep working.} SWE-bench Verified resolve rate by temperature for every fully graded model and harness setting, mini-swe-agent, official test harness.}
+\caption{\textbf{Temperature-growing rules break coding agents. Tight rules keep working.} SWE-bench Verified resolve rate by temperature, mini-swe-agent with the official test harness. Gemma models were run only up to $T{=}1.5$.}
 \label{fig:swe}
 \end{figure}
 
