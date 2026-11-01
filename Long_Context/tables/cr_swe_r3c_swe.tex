@@ -4,9 +4,12 @@
 \cmidrule(lr){2-3} \cmidrule(lr){4-5}
 Sampler & Resolved & W/L vs top-$p$ & Resolved & W/L vs top-$p$ \\
 \midrule
+Pure sampling & 58\% & 4/4 & 56\% & 4/4 \\
+Top-$k$ 50 & 58\% & 5/5 & 54\% & 3/4 \\
 Top-$p$ 0.9 & 58\% & base & 56\% & base \\
 Min-$p$ 0.1 & 56\% & 2/3 & 66\% & 6/1 \\
-\pless{} & 50\% & 3/7 & -- & -- \\
+Top-H 0.4 & 60\% & 3/2 & 56\% & 4/4 \\
+\pless{} & 50\% & 3/7 & 60\% & 4/2 \\
 Top-$n\sigma$ 1 & 52\% & 2/5 & 58\% & 5/4 \\
 \bottomrule
 \end{tabular}
