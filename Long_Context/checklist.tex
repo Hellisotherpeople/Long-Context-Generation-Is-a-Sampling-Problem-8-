@@ -42,7 +42,7 @@
 \item {\bf Experiments Compute Resources}
     \item[] Question: For each experiment, does the paper provide sufficient information on the computer resources needed to reproduce the experiments?
     \item[] Answer: \answerYes{}
-    \item[] Justification: Experiments ran on one node with eight NVIDIA H200 GPUs (vLLM 0.30) and one RTX 5090 (vLLM 0.11). GPU-hours per job are logged by our scheduler and released; SWE-bench evaluation ran on CPU with Docker. TODO(final): insert the total from the scheduler log when the campaign completes.
+    \item[] Justification: Experiments ran on one node with eight NVIDIA H200 GPUs (vLLM 0.30) and one RTX 5090 (vLLM 0.11). The camera-ready experiments used about \input{tables/cr_compute.tex} H200 GPU-hours (summed over finished jobs in the released scheduler log), plus SWE-bench evaluation on CPU with Docker.
 
 \item {\bf Code Of Ethics}
     \item[] Question: Does the research conducted in the paper conform, in every respect, with the NeurIPS Code of Ethics?
