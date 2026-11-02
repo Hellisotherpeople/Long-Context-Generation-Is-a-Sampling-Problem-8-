@@ -62,3 +62,4 @@ Prediction (stated before running): no significant separation at T=1; at T=2 tai
 ### WritingBench critic amendment (2026-11-01): responses longer than 28K tokens are truncated to first+last 12K critic tokens (of >24K) so the critic prompt fits its 32K context (one Gemma-4-31B response crashed the run).
 ## R17b (2026-11-02): R17 Arena-Write floor test extended to Mistral-Nemo-12B, OLMo-3-7B, Nemotron-3-30B-A3B (fills idle GPUs while 122B jobs wait for 4 GPUs).
 ## R19 (2026-11-02): WritingBench extended to gpt-oss-120b and Mistral-Nemo-12B (fills GPUs 2,3,7).
+## R20 (2026-11-02): R18 fresh-100 SWE grid (top-p/top-nsigma/min-p/Top-H x T{1,2}, 250 steps) on Qwen3.5-27B and Qwen3.5-35B-A3B. Same outcome/test as R18.
