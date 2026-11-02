@@ -71,3 +71,9 @@ First window high (7.6-8.0) for every rule at T=1.0, last window 1.5-2.0: same c
   top-nsigma+top-2 floor = 42% / 22% at T=1.5/2 (format errors 1.4 / 9.6 per episode vs 0.04/0.06 bare). The floor HURTS agents.
 - Convention: SWE-bench standard (empty or unevaluable patches = unresolved). Briefly tried excluding harness errors; reverted
   because it mixes denominators. Paper numbers unchanged by the round trip.
+
+## Fact-check pass (2026-11-02): independent check of ~140 claims vs result files found 22 issues
+Root cause of most: tables/prose written while runs were partial (R1 was ~70/cell, now 80/cell complete; R5 4->8 models;
+R4 7->9 models; Arena-Write 8->9 models with 2 samples on 6; Arena-Write floor 3->6 models). All tables/figures regenerated
+from complete data and every flagged sentence corrected (27 edits). Also fixed: counting errors (non-fiction is 8 prompts x 6 models),
+an overclaim in the Discussion (P-less, not only top-nsigma, holds benchmarks/agentic scores through T=2), and the depth trend wording.
