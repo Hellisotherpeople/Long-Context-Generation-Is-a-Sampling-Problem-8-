@@ -59,4 +59,5 @@ Prediction (stated before running): no significant separation at T=1; at T=2 tai
 ## R12b (2026-11-01): context depth on Gemma-4-12B and Qwen3.5-27B, D{2K,16K,64K}, same grid/outcomes as R12.
 ## R15b (2026-11-01): Arena-Write with 2 samples on 6 models (adds Mistral-Nemo-12B, Nemotron-3-30B-A3B, OLMo-3-7B); same outcomes as R15.
 ## R18 (2026-11-01): fresh 100 SWE-bench Verified instances (disjoint from ids100, seed 20261101), Qwen3.5-9B, 250 steps, top-p/top-nsigma/min-p/Top-H at T{1,2}. Out-of-sample replication of the R3a T=2 split. Primary: paired sign test vs top-p at same T.
-### WritingBench critic amendment (2026-11-01): responses longer than 28K tokens are truncated to first+last 14K tokens so the critic prompt fits its 32K context (one Gemma-4-31B response crashed the run).
+### WritingBench critic amendment (2026-11-01): responses longer than 28K tokens are truncated to first+last 12K critic tokens (of >24K) so the critic prompt fits its 32K context (one Gemma-4-31B response crashed the run).
+## R17b (2026-11-02): R17 Arena-Write floor test extended to Mistral-Nemo-12B, OLMo-3-7B, Nemotron-3-30B-A3B (fills idle GPUs while 122B jobs wait for 4 GPUs).

@@ -31,13 +31,15 @@ def main(run):
     done = set()
     if os.path.exists(out_f):
         done = {(json.loads(l)["uid"], json.loads(l)["criterion"]) for l in open(out_f)}
+    from transformers import AutoTokenizer
+    ctok = AutoTokenizer.from_pretrained(CRITIC)
     convs, keys = [], []
     for m in metas:
         q = bench[m["meta"]["pid"]]
-        ids = np.load(f"{run}/gen/{m['uid']}.npz")["tokens"]
-        if len(ids) > 28000:  # critic context is 32K: keep head + tail of over-long responses
-            ids = np.concatenate([ids[:14000], ids[-14000:]])
-        resp = tok.decode(ids, skip_special_tokens=True)
+        resp = tok.decode(np.load(f"{run}/gen/{m['uid']}.npz")["tokens"], skip_special_tokens=True)
+        cids = ctok(resp, add_special_tokens=False)["input_ids"]
+        if len(cids) > 24000:  # critic context is 32K: keep head + tail (in critic tokens) of over-long responses
+            resp = ctok.decode(cids[:12000]) + "\n[...]\n" + ctok.decode(cids[-12000:])
         for c in q["checklist"]:
             k = (m["uid"], c.get("name", str(c)))
             if k in done:
