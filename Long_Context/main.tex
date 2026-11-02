@@ -157,7 +157,7 @@ Forced length is a stress test. Published long-writing benchmarks let the model 
 \label{fig:bench}
 \end{figure}
 
-At $T{=}1$ every rule is healthy on 72--75\% of Arena-Write generations and scores 78--81 on LongBench-Write, the same tie as under forced length. At $T{=}2$, top-$n\sigma$ is unchanged on both benchmarks (0.75 healthy, $S{=}80.6$), \pless{} and min-$p$ lose a little and a lot respectively (0.67 and 0.52 healthy), and the tail-admitting rules collapse: Top-H 0.15, top-$k$ 0.23 and top-$p$ 0.01 healthy, with LongBench-Write scores of 38, 43 and 21. WritingBench~\citep{wu2025writingbench}, scored by its released critic model on 555 queries and three models, agrees: every rule scores 6.9--7.1 out of 10 at $T{=}1$, and at $T{=}2$ top-$n\sigma$ scores 7.0 while top-$p$ scores 2.5 and pure sampling 1.3. Without forced length the healthy rate is far from zero, so these benchmarks rank the rules directly, and they rank them the same way the forced-length grid and the candidate-set measurements do.
+At $T{=}1$ every rule is healthy on 72--75\% of Arena-Write generations and scores 78--81 on LongBench-Write, the same tie as under forced length. At $T{=}2$, top-$n\sigma$ is unchanged on both benchmarks (0.75 healthy, $S{=}80.6$), \pless{} and min-$p$ lose a little and a lot respectively (0.67 and 0.52 healthy), and the tail-admitting rules collapse: Top-H 0.15, top-$k$ 0.23 and top-$p$ 0.01 healthy, with LongBench-Write scores of 38, 43 and 21. WritingBench~\citep{wu2025writingbench}, scored by its released critic model on 555 queries and six models including Llama-3.3-70B and gpt-oss-120b, agrees: every rule scores 6.8--6.9 out of 10 at $T{=}1$, and at $T{=}2$ top-$n\sigma$ scores 6.9 while top-$p$ scores 2.2 and pure sampling 1.3. Without forced length the healthy rate is far from zero, so these benchmarks rank the rules directly, and they rank them the same way the forced-length grid and the candidate-set measurements do.
 
 \subsection{The temperature response of the candidate set}
 \label{sec:mechanism}
@@ -338,7 +338,7 @@ Qwen3.5-9B, mini-swe-agent, 250-step limit, 100 fixed instances, three temperatu
 
 \begin{table}[h]
 \centering
-\caption{Published long-writing benchmarks: Arena-Write and LongBench-Write (numbers behind Figure~\ref{fig:bench}) and WritingBench critic scores (1--10, three models).}
+\caption{Published long-writing benchmarks: Arena-Write and LongBench-Write (numbers behind Figure~\ref{fig:bench}) and WritingBench critic scores (1--10, six models).}
 \label{tab:bench}
 \small
 \resizebox{\textwidth}{!}{\input{tables/cr_bench.tex}}
