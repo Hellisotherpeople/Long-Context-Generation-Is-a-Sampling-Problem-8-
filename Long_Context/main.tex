@@ -242,7 +242,7 @@ Agentic coding is long-context generation in its most practical form. The model 
 \input{tables/cr_swe_r3b_swelong.tex}
 \end{table}
 
-The split replicates at scale (Figure~\ref{fig:swe}). On Qwen3.5-27B and Qwen3.5-35B-A3B with the long-horizon harness, every rule resolves 56--72\% at $T{=}1$ with no significant paired difference, while at $T{=}2$ top-$p$, top-$k$, Top-H and pure sampling resolve nothing and top-$n\sigma$ resolves 72\% and 58\% (36--0 and 29--0 against top-$p$). Two further runs check that this is not an artifact of one instance sample or one draw. On 100 fresh SWE-bench Verified instances disjoint from the first 100, every rule resolves 44--48\% at $T{=}1$ with no significant difference, and at $T{=}2$ top-$p$ and Top-H resolve none while top-$n\sigma$ resolves 46\% (46--0). An independent repeat of the long-horizon grid gives top-$n\sigma$ 56\% and 60\% at $T{=}1.5$ and $2$ against 2\% and 0\% for top-$p$. Adding the top-2 floor of Section~\ref{sec:stack} to top-$n\sigma$ hurts agents (42\% and 22\%), even though it removes loops in fiction, because the floor admits a second token at every step, including steps where the agent must emit an exact command: format errors per episode rise from 0.04 to 1.4 at $T{=}1.5$ and from 0.06 to 9.6 at $T{=}2$. Gemma-4 is the exception that fits the mechanism. On Gemma-4-31B no rule separates at $T{=}1.5$, and the candidate sets explain why: top-$p$ still admits a median of one token per step at $T{=}1.5$ (33 at $T{=}2$), where the Qwen, OLMo and Llama models admit tens of thousands. We attribute this to Gemma's soft-capped final logits, which keep the distribution peaked under temperature, though we did not isolate the cap experimentally. Gemma-4-E4B resolves at most 12\% under any rule, too few to compare.
+The split replicates at scale (Figure~\ref{fig:swe}). On Qwen3.5-27B and Qwen3.5-35B-A3B with the long-horizon harness, every rule resolves 56--72\% at $T{=}1$ with no significant paired difference, while at $T{=}2$ top-$p$, top-$k$, Top-H and pure sampling resolve nothing and top-$n\sigma$ resolves 72\% and 58\% (36--0 and 29--0 against top-$p$). Two further runs check that this is not an artifact of one instance sample or one draw. On 100 fresh SWE-bench Verified instances disjoint from the first 100, every rule resolves 44--48\% at $T{=}1$ with no significant difference, and at $T{=}2$ top-$p$ and Top-H resolve none while top-$n\sigma$ resolves 46\% (46--0). An independent repeat of the long-horizon grid gives top-$n\sigma$ 56\% and 60\% at $T{=}1.5$ and $2$ against 2\% and 0\% for top-$p$. Adding the top-2 floor of Section~\ref{sec:stack} to top-$n\sigma$ hurts agents (42\% and 22\%), even though it removes loops in fiction, because the floor admits a second token at every step, including steps where the agent must emit an exact command: format errors per episode rise from 0.04 to 1.4 at $T{=}1.5$ and from 0.06 to 9.6 at $T{=}2$. Long chain-of-thought coding without an agent shows the same pattern in miniature. On LiveCodeBench v6~\citep{jain2025livecodebench} with Qwen3.8-27B in thinking mode (175 problems, two samples, 32K-token budget, official tests; Table~\ref{tab:lcb}, Appendix~\ref{app:swe}), every rule scores 61--64\% pass@1 at $T{\le}1$ with no significant difference, and at $T{=}1.3$ top-$p$ 0.95 drops to 51\% while min-$p$, \pless{}, top-$n\sigma$ and Top-H stay at 63\% and win 49--53 of the problems where they disagree with top-$p$ against 6--8 losses. At $T{=}1.3$ Top-H still admits few tokens (Figure~\ref{fig:pool}), so it has not yet reached its cliff. Gemma-4 is the exception that fits the mechanism. On Gemma-4-31B no rule separates at $T{=}1.5$, and the candidate sets explain why: top-$p$ still admits a median of one token per step at $T{=}1.5$ (33 at $T{=}2$), where the Qwen, OLMo and Llama models admit tens of thousands. We attribute this to Gemma's soft-capped final logits, which keep the distribution peaked under temperature, though we did not isolate the cap experimentally. Gemma-4-E4B resolves at most 12\% under any rule, too few to compare.
 
 \begin{figure}[t]
 \centering
@@ -307,6 +307,14 @@ Qwen3.5-9B, mini-swe-agent, 250-step limit, 100 fixed instances, three temperatu
 \label{tab:r1}
 \small
 \input{tables/cr_r1_16k.tex}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{LiveCodeBench v6, Qwen3.8-27B in thinking mode, 175 problems $\times$ 2 samples, 32K tokens, official tests in a sandbox. W/L: problem-samples solved by the rule but not by top-$p$ 0.95 at the same $T$, and the reverse. $^{*}$: sign test $p<0.05$.}
+\label{tab:lcb}
+\small
+\input{tables/cr_lcb.tex}
 \end{table}
 
 \section{Candidate sets and the temperature-last ablation in numbers}
