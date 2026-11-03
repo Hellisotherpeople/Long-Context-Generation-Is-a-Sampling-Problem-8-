@@ -15,7 +15,7 @@ for T in TS:
         w = int(((j.a == 1) & (j.b == 0)).sum()); l = int(((j.a == 0) & (j.b == 1)).sum())
         rows.append(dict(T=T, sampler=s, acc=j.a.mean(), topp=j.b.mean(), w=w, l=l, n=len(j),
                          p=binomtest(w, w + l).pvalue if w + l else 1.0))
-d = pd.DataFrame(rows); d.to_csv(f"{H}/results/cr_lcb_paired.csv", index=False)
+d = pd.DataFrame(rows); d.to_csv(f"{H}/results/cr_lcb_paired_{M}.csv", index=False)
 top = {T: d[d["T"] == T].topp.iloc[0] for T in TS}
 L = ["\\begin{tabular}{lcccccc}", "\\toprule",
      " & " + " & ".join(f"\\multicolumn{{2}}{{c}}{{$T{{=}}{t:g}$}}" for t in TS) + " \\\\",
@@ -29,4 +29,4 @@ for s in NM:
         c.append(f"{100 * r.acc:.1f} & {r.w}/{r.l}" + ("$^{*}$" if r.p < 0.05 else ""))
     L.append(f"{NM[s]} & " + " & ".join(c) + " \\\\")
 L += ["\\bottomrule", "\\end{tabular}"]
-open(f"{H}/tables/cr_lcb.tex", "w").write("\n".join(L) + "\n"); print("\n".join(L)); print("n per cell", d.n.min(), d.n.max())
+open(f"{H}/tables/cr_lcb_{M}.tex", "w").write("\n".join(L) + "\n"); print("\n".join(L)); print("n per cell", d.n.min(), d.n.max())

@@ -1,0 +1,13 @@
+\begin{tabular}{lcccccc}
+\toprule
+ & \multicolumn{2}{c}{$T{=}0.6$} & \multicolumn{2}{c}{$T{=}1$} & \multicolumn{2}{c}{$T{=}1.3$} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Sampler & pass@1 & W/L & pass@1 & W/L & pass@1 & W/L \\
+\midrule
+Top-$p$ 0.95 & 52.0 & base & 49.1 & base & 46.3 & base \\
+Top-$n\sigma$ 1 & 52.9 & 20/17 & 51.4 & 18/10 & 50.3 & 24/10$^{*}$ \\
+Min-$p$ 0.1 & 49.4 & 16/25 & 51.1 & 15/8 & 48.6 & 21/13 \\
+\pless{} & 46.3 & 14/34$^{*}$ & 45.4 & 12/25$^{*}$ & 49.7 & 24/12 \\
+Top-H 0.4 & 46.9 & 16/34$^{*}$ & 48.6 & 22/24 & 49.7 & 26/14 \\
+\bottomrule
+\end{tabular}
