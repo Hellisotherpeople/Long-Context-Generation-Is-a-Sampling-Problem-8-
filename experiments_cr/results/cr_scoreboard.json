@@ -1,0 +1,179 @@
+[
+ {
+  "group": "Coding agents\n(SWE-bench Verified)",
+  "row": "Qwen3.5-9B, 100 issues",
+  "T": 2.0,
+  "minp0.1": 45.7,
+  "nsigma1": 141.7,
+  "pless": 151.5,
+  "toph0.4": 0.0,
+  "topk50": 0.0,
+  "topp0.9": 0.0
+ },
+ {
+  "group": "Coding agents\n(SWE-bench Verified)",
+  "row": "Qwen3.5-27B, 50 issues",
+  "T": 2.0,
+  "minp0.1": 71.4,
+  "nsigma1": 116.1,
+  "pless": 103.0,
+  "toph0.4": 0.0,
+  "topk50": 0.0,
+  "topp0.9": 0.0
+ },
+ {
+  "group": "Coding agents\n(SWE-bench Verified)",
+  "row": "Qwen3.5-35B-A3B, 50 issues",
+  "T": 2.0,
+  "minp0.1": 82.8,
+  "nsigma1": 85.3,
+  "pless": 114.3,
+  "toph0.4": 0.0,
+  "topk50": 0.0,
+  "topp0.9": 0.0
+ },
+ {
+  "group": "Coding agents\n(SWE-bench Verified)",
+  "row": "Qwen3.5-9B, 100 fresh",
+  "T": 2.0,
+  "minp0.1": 40.9,
+  "nsigma1": 100.0,
+  "toph0.4": 0.0,
+  "topp0.9": 0.0
+ },
+ {
+  "group": "Coding agents\n(SWE-bench Verified)",
+  "row": "Qwen3.5-27B, 100 fresh",
+  "T": 2.0,
+  "minp0.1": 81.0,
+  "nsigma1": 110.7,
+  "toph0.4": 0.0,
+  "topp0.9": 0.0
+ },
+ {
+  "group": "Coding agents\n(SWE-bench Verified)",
+  "row": "Qwen3.5-35B-A3B, 100 fresh",
+  "T": 2.0,
+  "minp0.1": 72.9,
+  "nsigma1": 94.6,
+  "toph0.4": 0.0,
+  "topp0.9": 0.0
+ },
+ {
+  "group": "Long reasoning",
+  "row": "LiveCodeBench v6, Qwen3.8-27B",
+  "T": 1.3,
+  "minp0.1": 100.5,
+  "nsigma1": 99.6,
+  "pless": 100.0,
+  "toph0.4": 100.5,
+  "topp0.9": 83.1
+ },
+ {
+  "group": "Long reasoning",
+  "row": "LiveCodeBench v6, Qwen3.6-27B",
+  "T": 1.3,
+  "minp0.1": 95.0,
+  "nsigma1": 97.8,
+  "pless": 109.4,
+  "toph0.4": 102.4,
+  "topp0.9": 94.2
+ },
+ {
+  "group": "Long reasoning",
+  "row": "AIME + HMMT 2025\u201326, 6 models",
+  "T": 1.3,
+  "minp0.1": 86.0,
+  "nsigma1": 101.6,
+  "pless": 113.1,
+  "toph0.4": 105.6,
+  "topp0.9": 73.0
+ },
+ {
+  "group": "Long reasoning",
+  "row": "AIME 2025\u201326 + MATH-500 L5, 4 models",
+  "T": 1.3,
+  "minp0.1": 94.7,
+  "nsigma1": 100.2,
+  "pless": 110.3,
+  "toph0.4": 106.6,
+  "topp0.9": 69.2
+ },
+ {
+  "group": "Long writing",
+  "row": "Arena-Write, healthy texts, 9 models",
+  "T": 2.0,
+  "topp0.9": 1.0,
+  "topk50": 16.6,
+  "toph0.4": 11.0,
+  "pless": 82.6,
+  "minp0.1": 75.0,
+  "nsigma1": 100.5
+ },
+ {
+  "group": "Long writing",
+  "row": "LongBench-Write score, 8 models",
+  "T": 2.0,
+  "topp0.9": 26.1,
+  "topk50": 54.1,
+  "toph0.4": 48.0,
+  "pless": 98.3,
+  "minp0.1": 93.2,
+  "nsigma1": 101.2
+ },
+ {
+  "group": "Long writing",
+  "row": "WritingBench critic, 6 models",
+  "T": 2.0,
+  "topp0.9": 32.0,
+  "topk50": 72.1,
+  "toph0.4": 63.6,
+  "pless": 99.2,
+  "minp0.1": 97.0,
+  "nsigma1": 100.5
+ },
+ {
+  "group": "Long writing",
+  "row": "Forced 16K fiction, first window, 10 models",
+  "T": 2.0,
+  "topp0.9": 19.9,
+  "topk50": 38.1,
+  "toph0.4": 37.4,
+  "pless": 74.2,
+  "minp0.1": 73.3,
+  "nsigma1": 98.6
+ },
+ {
+  "group": "Long writing",
+  "row": "LongProc procedural output, 6 models",
+  "T": 1.5,
+  "topp0.9": 46.2,
+  "topk50": 31.5,
+  "toph0.4": 47.8,
+  "pless": 98.6,
+  "minp0.1": 83.9,
+  "nsigma1": 97.2
+ },
+ {
+  "group": "Long-context reading",
+  "row": "LongBench v2 (up to 120K), 6 models",
+  "T": 1.5,
+  "topp0.9": 69.9,
+  "topk50": 80.2,
+  "toph0.4": 90.6,
+  "pless": 99.8,
+  "minp0.1": 91.9,
+  "nsigma1": 96.9
+ },
+ {
+  "group": "Long-context reading",
+  "row": "Needle retrieval at 1M tokens, 4 models",
+  "T": 1.5,
+  "topp0.9": 81.7,
+  "topk50": 80.9,
+  "toph0.4": 80.1,
+  "pless": 97.5,
+  "minp0.1": 96.9,
+  "nsigma1": 98.0
+ }
+]

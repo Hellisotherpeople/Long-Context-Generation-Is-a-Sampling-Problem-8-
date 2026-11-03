@@ -1,0 +1,15 @@
+\begin{tabular}{lcccccc}
+\toprule
+ & \multicolumn{2}{c}{$T{=}1.0$} & \multicolumn{2}{c}{$T{=}1.5$} & \multicolumn{2}{c}{$T{=}2.0$} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Sampler & Resolved & W/L vs top-$p$ & Resolved & W/L vs top-$p$ & Resolved & W/L vs top-$p$ \\
+\midrule
+Pure sampling & 66\% & 8/3 & 0\% & 0/3 & 0\% & 0/0 \\
+Top-$k$ 50 & 62\% & 6/3 & 18\% & 7/1 & 0\% & 0/0 \\
+Top-$p$ 0.9 & 56\% & base & 6\% & base & 0\% & base \\
+Min-$p$ 0.1 & 58\% & 5/4 & 58\% & 26/0$^{*}$ & 48\% & 24/0$^{*}$ \\
+Top-H 0.4 & 62\% & 7/4 & 44\% & 20/1$^{*}$ & 0\% & 0/0 \\
+\pless{} & 56\% & 5/5 & 62\% & 28/0$^{*}$ & 64\% & 32/0$^{*}$ \\
+Top-$n\sigma$ 1 & 68\% & 9/3 & 66\% & 30/0$^{*}$ & 58\% & 29/0$^{*}$ \\
+\bottomrule
+\end{tabular}

@@ -36,7 +36,8 @@ def main():
     t.to_json(f"{H}/results/cr_swe.json", orient="records", indent=1)
     s = t.round(3).to_string(index=False)
     open(f"{H}/results/cr_swe.txt", "w").write(s + "\n"); print(s)
-    for exp, g in t.groupby("exp"):
+    nmod = t.groupby("exp").model.nunique()
+    for (exp, model), g in t.groupby(["exp", "model"]):
         temps = sorted(g["T"].unique())
         L = ["\\begin{tabular}{l" + "cc" * len(temps) + "}", "\\toprule",
              " & " + " & ".join(f"\\multicolumn{{2}}{{c}}{{$T{{=}}{x}$}}" for x in temps) + " \\\\",
@@ -59,7 +60,9 @@ def main():
             if any(c != "--" for c in cells):
                 L.append(f"{NAME[smp]} & " + " & ".join(cells) + " \\\\")
         L += ["\\bottomrule", "\\end{tabular}"]
-        open(f"{H}/tables/cr_swe_{exp}.tex", "w").write("\n".join(L) + "\n")
+        open(f"{H}/tables/cr_swe_{exp}__{model}.tex", "w").write("\n".join(L) + "\n")
+        if nmod[exp] == 1:   # single-model waves keep the short name used by main.tex
+            open(f"{H}/tables/cr_swe_{exp}.tex", "w").write("\n".join(L) + "\n")
 
 
 if __name__ == "__main__":
