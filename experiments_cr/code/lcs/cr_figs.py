@@ -174,16 +174,19 @@ def fig_tl():
 
 
 # ---------------------------------------------------------------- 5. agentic
-def fig_swe():
+def fig_swe(which="main"):
     t = pd.DataFrame(json.load(open(f"{H}/results/cr_swe.json")))
     t = t[t.graded >= 0.9 * t.n]
-    panels = [(e, m) for e, m in [("r3a_swe", "qwen3.5-9b"), ("r3b_swelong", "qwen3.5-9b"), ("r7_swe", "qwen3.5-27b"),
-                                  ("r7_swe", "qwen3.5-35b-a3b"), ("r3c_swe", "gemma4-31b"), ("r7_swe", "gemma4-e4b")]
-              if not t[(t.exp == e) & (t.model == m)].empty]
+    cand = ([("r3a_swe", "qwen3.5-9b"), ("r3b_swelong", "qwen3.5-9b"), ("r7_swe", "qwen3.5-27b"), ("r7_swe", "qwen3.5-35b-a3b"),
+             ("r20_swe_new100", "qwen3.5-27b"), ("r20_swe_new100", "qwen3.5-35b-a3b")] if which == "main" else
+            [("r3c_swe", "gemma4-31b"), ("r21_swe_new100", "gemma4-31b"), ("r7_swe", "gemma4-e4b")])
+    panels = [(e, m) for e, m in cand if not t[(t.exp == e) & (t.model == m)].empty]
     title = {("r3a_swe", "qwen3.5-9b"): "Qwen3.5-9B\n100 tasks, 250 steps", ("r3b_swelong", "qwen3.5-9b"): "Qwen3.5-9B\n50 tasks, 500 steps",
              ("r7_swe", "qwen3.5-27b"): "Qwen3.5-27B\n50 tasks, 500 steps", ("r7_swe", "qwen3.5-35b-a3b"): "Qwen3.5-35B-A3B\n50 tasks, 500 steps",
-             ("r3c_swe", "gemma4-31b"): "Gemma-4-31B\n50 tasks, 250 steps", ("r7_swe", "gemma4-e4b"): "Gemma-4-E4B\n50 tasks, 500 steps"}
-    fig, axes = plt.subplots(1, len(panels), figsize=(7.0, 2.1), sharey=True, squeeze=False)
+             ("r3c_swe", "gemma4-31b"): "Gemma-4-31B\n50 tasks, 250 steps", ("r7_swe", "gemma4-e4b"): "Gemma-4-E4B\n50 tasks, 500 steps",
+             ("r20_swe_new100", "qwen3.5-27b"): "Qwen3.5-27B\n100 new tasks", ("r20_swe_new100", "qwen3.5-35b-a3b"): "Qwen3.5-35B-A3B\n100 new tasks",
+             ("r21_swe_new100", "gemma4-31b"): "Gemma-4-31B\n100 new tasks"}
+    fig, axes = plt.subplots(1, len(panels), figsize=(7.0 if which == "main" else 4.2, 2.1), sharey=True, squeeze=False)
     for ax, (e, m) in zip(axes[0], panels):
         g = t[(t.exp == e) & (t.model == m)]
         for k in ORDER:
@@ -195,24 +198,35 @@ def fig_swe():
     handles = [mpl.lines.Line2D([], [], color=S[k][1], marker=S[k][2], mec="white", lw=1.5, label=S[k][0]) for k in ORDER]
     fig.legend(handles=handles, ncol=6, loc="lower center", bbox_to_anchor=(0.5, -0.12), fontsize=7, handlelength=1.6, columnspacing=1.1)
     fig.subplots_adjust(wspace=0.15, bottom=0.27)
-    save(fig, "fig_swe")
+    save(fig, "fig_swe" if which == "main" else "fig_swe_gemma")
+
+
+def fig_swe_gemma():
+    fig_swe("gemma")
 
 
 def fig_bench():
     aw = pd.DataFrame(json.load(open(f"{H}/results/cr_arenawrite.json")))
     lb = pd.read_parquet(f"{H}/results/lbwrite_cells.parquet").groupby(["sampler", "T"]).S.mean().reset_index()
-    fig, axes = plt.subplots(1, 2, figsize=(5.6, 2.2))
-    for ax, (d, col, yl, ylim) in zip(axes, [(aw, "healthy", "Arena-Write: healthy generations", (-0.03, 0.85)),
-                                              (lb, "S", "LongBench-Write score $S$", (0, 90))]):
+    wb = pd.read_parquet(f"{H}/results/wbench_cells.parquet").groupby(["sampler", "T"]).score.mean().reset_index()
+    fig, axes = plt.subplots(1, 3, figsize=(7.0, 2.15))
+    for ax, (d, col, yl, ylim) in zip(axes, [(aw, "healthy", "Arena-Write (9 models)\nfraction of healthy texts", (-0.03, 1.0)),
+                                              (lb, "S", "LongBench-Write (8 models)\nofficial score $S$", (0, 90)),
+                                              (wb, "score", "WritingBench (6 models)\ncritic score", (0, 8))]):
         for k in ORDER + ["temp"]:
             g = d[d.sampler == k].sort_values("T"); g = g[g["T"] > 0]
             if len(g): line(ax, g["T"].values, g[col].values, k, label=False)
-        ax.set_xticks([1.0, 1.5, 2.0]); ax.set_xlim(0.9, 2.1); ax.set_ylim(*ylim); ax.set_xlabel("Temperature"); ax.set_title(yl, fontsize=8)
+        ax.set_xticks([1.0, 1.5, 2.0]); ax.set_xlim(0.9, 2.1); ax.set_ylim(*ylim); ax.set_xlabel("Temperature"); ax.set_title(yl, fontsize=7.4, loc="center")
     handles = [mpl.lines.Line2D([], [], color=S[k][1], marker=S[k][2], mec="white", lw=1.6, ls=":" if k == "temp" else "-", label=S[k][0])
                for k in ["nsigma1", "pless", "minp0.1", "toph0.4", "topk50", "topp0.9", "temp"]]
-    fig.legend(handles=handles, ncol=1, loc="center left", bbox_to_anchor=(0.99, 0.5), fontsize=7)
-    fig.subplots_adjust(wspace=0.3)
+    fig.legend(handles=handles, ncol=7, loc="lower center", bbox_to_anchor=(0.5, -0.13), fontsize=6.8, handlelength=1.6, columnspacing=1.0)
+    fig.subplots_adjust(wspace=0.32, bottom=0.28)
     save(fig, "fig_bench")
+
+
+def fig_teaser():
+    from .figs_extra import fig_teaser as _t
+    _t(H, S, INK, save)
 
 
 if __name__ == "__main__":
