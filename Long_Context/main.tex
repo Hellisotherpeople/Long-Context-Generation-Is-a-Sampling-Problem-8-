@@ -35,34 +35,34 @@
 
 
 \begin{abstract}
-Long generations from open-weight language models collapse into repetition well before the context limit. We ask how much of that collapse the sampler controls, and rerun the question from scratch on ten models from 1B to 120B parameters, with forced and natural-length fiction, non-fiction, a map of 22 sampler settings across seven temperatures, and long-horizon agentic coding on SWE-bench Verified. At the temperature most systems ship, the sampler does not matter. Forced to 16K tokens at $T{=}1$, top-$p$, min-$p$, Top-H, P-less and top-$n\sigma$ all end in a terminal loop in at least 95\% of generations, a judge cannot separate them, and no rule beats top-$p$ on agentic coding. Above that temperature, the sampler decides almost everything, and one measurable property predicts the outcome: how the candidate set each rule actually admits responds to temperature. Rules whose candidate set grows with temperature escape loops only by admitting the noise tail. Top-$p$, top-$k$ and Top-H turn into word salad by $T{=}2$, and a coding agent that uses them resolves 0 of 100 issues. Top-$n\sigma$, whose candidate set is provably temperature invariant, keeps its judged quality up to $T{=}3$ and resolves 51. The rules usually grouped as ``full-distribution-aware'' do not share this property, and Top-H behaves like top-$p$. Deciding the candidate set at $T{=}1$ and applying temperature only inside it rescues Top-H, min-$p$ and P-less, but not top-$p$ or top-$k$, whose candidate sets already contain the tail. Sampling cannot rescue a model that wants to loop, but it decides whether long and agentic generation survive the flattened distributions they run into.
+Long generations from open-weight language models drift into repetition and incoherence, and the usual fix is more training. We show that the sampler, the rule that turns a model's next-token probabilities into an actual token, is a powerful and free lever on long-context generation, and we identify the one property that decides which samplers work. Across 23 open-weight models from 1B to 122B parameters, three published long-writing benchmarks, forced 16K-token generation, and coding agents on SWE-bench Verified, the result is the same: once the sampling temperature rises above 1, samplers whose candidate set stays tight keep generating well, while samplers that let low-probability tokens in fall apart. Coding agents using top-$p$, top-$k$ or Top-H at $T{=}2$ resolve 0 of 100 GitHub issues; the same agents using top-$n\sigma$ resolve 46--62, winning every disputed issue across three models and two disjoint task sets. On LongBench-Write, top-$n\sigma$ scores 80.6 at $T{=}2$ against 21 for top-$p$. Measuring the tokens each rule admits per step explains why: at one real decoding step, raising $T$ from 1 to 2 takes top-$p$ from 4 candidate tokens to 51,845, while top-$n\sigma$ keeps the same 3. A causal test confirms it: deciding the candidate set at $T{=}1$ and applying temperature only inside it rescues Top-H, min-$p$ and P-less. At the default $T{=}1$ the samplers perform alike, so the choice matters exactly when long and agentic generation turn up the heat, through exploration, best-of-$n$ selection, or escaping repetition.
 \end{abstract}
 
 %% ====================================================================
 \section{Introduction}
 %% ====================================================================
 
-Open-weight language models now accept and nominally generate very long sequences~\citep{dubey2024llama3,yang2024qwen2}. In practice the back half of a long sample frequently dissolves into repeated phrases, vocabulary narrowing, and loops~\citep{holtzman2020curious,welleck2020neural,fu2021theoretical}. The usual explanations point at model capacity and training data, and the usual fixes are retraining or long-output fine-tuning~\citep{bai2025longwriter}.
+Open-weight language models now accept and nominally generate very long sequences~\citep{dubey2024llama3,yang2024qwen2}, yet the back half of a long sample often dissolves into repeated phrases and loops~\citep{holtzman2020curious,welleck2020neural,fu2021theoretical}. The usual remedies are retraining and long-output fine-tuning~\citep{bai2025longwriter}. This paper is about a cheaper lever that every deployment already has: the sampler.
 
-A competing explanation blames the sampler. Truncation rules such as top-$p$~\citep{holtzman2020curious} and top-$k$~\citep{fan2018hierarchical} were designed and validated on short outputs, and a family of newer rules, min-$p$~\citep{nguyen2024minp}, top-$n\sigma$~\citep{tang2024topnsigma}, Top-H~\citep{baghaei2025toph} and P-less~\citep{tan2025pless}, claims to adapt the candidate set to the shape of each step's distribution. If the sampler were the bottleneck, a better rule should hold long generations together without any training.
+\paragraph{Sampling in one paragraph.}
+At every step a language model outputs a probability for each of the $\sim$100K tokens in its vocabulary. A \emph{sampler} turns those probabilities into one chosen token. \emph{Temperature} $T$ reshapes them first: $T{<}1$ sharpens the distribution toward the most likely token, and $T{>}1$ flattens it so that less likely tokens gain probability. A \emph{truncation rule} then throws away the unlikely tokens and samples from the survivors, the \emph{candidate set}. Rules differ in how they decide what is unlikely: top-$k$ keeps a fixed number of tokens~\citep{fan2018hierarchical}, top-$p$ keeps enough tokens to cover a fixed share of probability~\citep{holtzman2020curious}, and newer rules such as min-$p$~\citep{nguyen2024minp}, top-$n\sigma$~\citep{tang2024topnsigma}, Top-H~\citep{baghaei2025toph} and P-less~\citep{tan2025pless} adapt to the shape of each step's distribution.
 
-We test this claim directly, and we report what we find even where it cuts against the claim. Every experiment in this paper is a fresh run in bf16 with a single instrumented implementation of all samplers, verified against each method's reference code, which logs the realized candidate set at every decoding step.
-
+\paragraph{The question.}
+Long and agentic generation regularly push models to temperatures above 1: to diversify long texts, to explore in best-of-$n$ selection and reinforcement-learning rollouts, or simply to break out of a repetition loop. We ask which samplers survive that regime and why. Figure~\ref{fig:teaser} previews the answer. At a real decoding step, raising the temperature from 1 to 2 leaves top-$n\sigma$ with the same 3 candidate tokens and min-$p$ with 8, but lets top-$p$ admit 51,845. Coding agents behave accordingly: at $T{=}2$, every top-$p$ and Top-H agent fails every task, while top-$n\sigma$ agents keep solving about half of them.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{figures/fig_hero.pdf}
-\caption{\textbf{At $T{=}1$ every sampler decays the same way. Raise the temperature and the sampler decides everything.} Judged quality of 1.5K-token windows by position in forced 16K-token fiction, averaged over ten models from 1B to 120B (80 generations per line). At $T{=}2$, top-$p$ and pure sampling produce word salad from the first window, while top-$n\sigma$ starts as well as at $T{=}1$.}
-\label{fig:hero}
+\includegraphics[width=\textwidth]{figures/fig_teaser.pdf}
+\caption{\textbf{The rule that decides what counts as unlikely decides whether a model survives high temperature.} (a) A real next-token distribution from Llama-3.1-8B in the middle of a story (step chosen by a fixed rule, Appendix~\ref{app:numbers}). Blue bars are the tokens top-$n\sigma$ keeps. Raising $T$ from 1 to 2 flattens the distribution: top-$n\sigma$ still keeps the same 3 tokens and min-$p$ grows to 8, but top-$p$ 0.9 now needs 51,845 tokens to cover 90\% of the probability. (b) SWE-bench Verified issues resolved by coding agents at $T{=}2$ (100 issues per bar). Top-$p$ and Top-H agents resolve none; top-$n\sigma$ agents resolve 46--62\%.}
+\label{fig:teaser}
 \end{figure}
 
-\paragraph{Contributions.}
+\paragraph{Findings.}
 \begin{enumerate}[leftmargin=*,nosep]
-\item \textbf{A negative result at deployment temperature.} Under forced 16K-token generation at $T{=}1$, top-$p$, min-$p$, Top-H, \pless{} and top-$n\sigma$ end in a terminal loop in at least 95\% of generations across ten models, and an LLM judge cannot separate them on final-window quality from each other or from top-$k$ and pure sampling (Section~\ref{sec:r1}). Sampler choice does not prevent late-context collapse.
-\item \textbf{The property that matters.} The sampler instead decides what happens when the temperature is raised to escape loops. We measure the realized candidate set and show that its response to temperature predicts the outcome: temperature-growing rules trade loops for word salad, while temperature-invariant top-$n\sigma$ keeps its local quality (Section~\ref{sec:mechanism}).
-\item \textbf{A causal test.} Fixing the candidate set at $T{=}1$ removes the temperature cliff for every rule whose $T{=}1$ set excludes the low-probability tail, and only for those (Section~\ref{sec:ablation}).
-\item \textbf{Agentic and natural-length generation.} We extend the study to natural-length continuation, non-fiction, and long-horizon agentic coding on SWE-bench Verified, where the same property separates rules that keep an agent working at elevated temperature from rules that break it (Sections~\ref{sec:natural}--\ref{sec:agentic}).
-\item \textbf{Corrections.} We correct the top-$n\sigma$ rule as stated in an earlier version of this work (Equation~\ref{eq:nsigma}) and show that the ``full-distribution-aware'' grouping does not correspond to a shared mechanism.
+\item \textbf{Tight samplers keep agents and long texts working when temperature rises.} Coding agents using top-$n\sigma$ win every disputed SWE-bench issue against top-$p$ at $T{=}2$, on three Qwen3.5 models and two disjoint sets of 100 issues (Section~\ref{sec:agentic}). The same ranking holds on Arena-Write, LongBench-Write and WritingBench (Section~\ref{sec:bench}) and position by position through forced 16K-token generations on ten models from 1B to 120B (Section~\ref{sec:r1}).
+\item \textbf{One measurable property predicts which samplers survive:} how the candidate set a rule actually admits responds to temperature. We measure it at every decoding step (Section~\ref{sec:mechanism}) and map it across 22 settings, seven temperatures and eight models (Section~\ref{sec:map}).
+\item \textbf{A causal test.} Fixing the candidate set at $T{=}1$ and applying temperature only inside it removes the temperature cliff for Top-H, min-$p$ and P-less (Section~\ref{sec:ablation}).
+\item \textbf{The ``full-distribution-aware'' label does not describe one mechanism.} Top-H reads a global statistic but behaves like top-$p$ under temperature; top-$n\sigma$ is provably temperature invariant (Section~\ref{sec:method}).
 \end{enumerate}
 
 %% ====================================================================
@@ -71,212 +71,182 @@ We test this claim directly, and we report what we find even where it cuts again
 %% ====================================================================
 
 \paragraph{Truncation samplers.}
-Temperature scaling divides logits by $T$ before the softmax~\citep{ackley1985learning}. Top-$k$ keeps the $k$ most probable tokens~\citep{fan2018hierarchical}. Top-$p$ keeps the smallest set whose cumulative probability exceeds $p$~\citep{holtzman2020curious}. Min-$p$ removes tokens below a fraction $p$ of the top probability~\citep{nguyen2024minp}. Locally typical sampling~\citep{meister2023locally}, $\eta$-sampling~\citep{hewitt2022truncation}, Mirostat~\citep{basu2021mirostat} and XTC~\citep{weidmann2024xtc} adapt the candidate set in other ways. Top-$n\sigma$~\citep{tang2024topnsigma}, Top-H~\citep{baghaei2025toph} and P-less~\citep{tan2025pless} condition the candidate set on statistics of the whole distribution and have been grouped as ``full-distribution-aware''. Section~\ref{sec:method} states each rule precisely.
+Beyond the rules above, locally typical sampling~\citep{meister2023locally}, $\eta$-sampling~\citep{hewitt2022truncation}, Mirostat~\citep{basu2021mirostat} and XTC~\citep{weidmann2024xtc} adapt the candidate set in other ways. Top-$n\sigma$, Top-H and P-less condition the candidate set on statistics of the whole distribution and have been grouped as ``full-distribution-aware''.
 
-\paragraph{Text degeneration and repetition.}
-Neural text generation is prone to repetition during extended generation~\citep{holtzman2020curious,welleck2020neural,fu2021theoretical}. Repetition penalties~\citep{keskar2019ctrl}, diversity objectives~\citep{li2016diversity}, the DRY penalty~\citep{weidmann2024dry} and contrastive search~\citep{su2022contrastive,su2023contrastive} target the same symptom. We study the base truncation rule.
+\paragraph{Text degeneration.}
+Neural text generation is prone to repetition during extended generation~\citep{holtzman2020curious,welleck2020neural,fu2021theoretical}. Repetition penalties~\citep{keskar2019ctrl}, diversity objectives~\citep{li2016diversity}, the DRY penalty~\citep{weidmann2024dry} and contrastive search~\citep{su2022contrastive,su2023contrastive} target the same symptom. We study the base truncation rule and treat penalties in Appendix~\ref{app:extra}.
 
-\paragraph{Sampler evaluation.}
-A controlled thirteen-model study finds that truncation samplers change accuracy mainly when high temperature degrades a model, and little at deployed defaults~\citep{larosa2026fragility}. Our long-context results agree and add the mechanism.
-
-\paragraph{Long-context evaluation.}
-Long-context capability is usually measured through retrieval and comprehension~\citep{bai2024longbench,hsieh2024ruler,shaham2023zeroscrolls}, while LongWriter~\citep{bai2025longwriter} probes length-following. LLM-as-judge evaluation~\citep{zheng2023judging,li2024generative} makes it practical to score long outputs window by window.
+\paragraph{Sampler evaluation and long-context evaluation.}
+A controlled thirteen-model study finds that truncation samplers change short-answer accuracy mainly when high temperature degrades a model~\citep{larosa2026fragility}. We find the same regime governs long-context and agentic generation, and we supply the mechanism. Long-context ability is usually measured through retrieval and comprehension~\citep{bai2024longbench,hsieh2024ruler,shaham2023zeroscrolls}, and long-output ability through benchmarks such as LongBench-Write~\citep{bai2025longwriter}. LLM judges~\citep{zheng2023judging,li2024generative} make it practical to score long outputs window by window.
 
 %% ====================================================================
-\section{Samplers and the Temperature Response of the Candidate Set}
+\section{How Each Sampler Responds to Temperature}
 \label{sec:method}
 %% ====================================================================
 
-Let $\mathbf{z}\in\mathbb{R}^{|V|}$ be the logits at one step, $p=\mathrm{softmax}(\mathbf{z}/T)$ the tempered distribution, and $\mathcal{C}\subseteq V$ the candidate set from which the next token is sampled after renormalization. Following the order used by HuggingFace, vLLM and SGLang, every rule is applied to the tempered distribution.
+Let $\mathbf{z}\in\mathbb{R}^{|V|}$ be the logits at one step, $p=\mathrm{softmax}(\mathbf{z}/T)$ the tempered distribution, and $\mathcal{C}\subseteq V$ the candidate set. Following HuggingFace, vLLM and SGLang, every rule is applied to the tempered distribution. Table~\ref{tab:glance} summarizes the rules we compare and how large their candidate sets actually are.
 
-\paragraph{P-less.}
-P-less~\citep{tan2025pless} keeps tokens whose probability is at least the collision probability of the distribution:
-\begin{equation}
-L[p] = \sum_{v \in V} p(v)^2,
-\qquad
-\mathcal{C}_{\text{p-less}} = \{v \in V : p(v) \ge L[p]\}.
-\label{eq:pless}
-\end{equation}
+\begin{table}[t]
+\centering
+\caption{\textbf{The samplers at a glance.} The last column is the measured median number of tokens each rule admits per decoding step at $T{=}1$ and $T{=}2$ (first 2K tokens of the ten-model generations of Section~\ref{sec:r1}; full numbers in Table~\ref{tab:pool}).}
+\label{tab:glance}
+\small
+\begin{tabular}{lll}
+\toprule
+Sampler & Keeps the tokens that\ldots & Tokens kept, $T{=}1 \to T{=}2$ \\
+\midrule
+Pure sampling & (all tokens) & entire vocabulary \\
+Top-$k$ 50 & are among the 50 most likely & 51 $\to$ 51 \\
+Top-$p$ 0.9 & together cover 90\% of the probability & 2 $\to$ about 90{,}000 \\
+Top-H 0.4 & keep the set's entropy under 40\% of the full entropy & 1 $\to$ 54 \\
+Min-$p$ 0.1 & have at least 10\% of the top token's probability & 1 $\to$ 14 \\
+P-less & have at least the collision probability $\sum_v p(v)^2$ & 1 $\to$ 21 \\
+Top-$n\sigma$ 1 & have logits within one standard deviation of the maximum & 1 $\to$ 1 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\paragraph{Top-$n\sigma$.}
-Top-$n\sigma$~\citep{tang2024topnsigma} keeps every token within $n$ standard deviations of the maximum logit:
+\paragraph{Top-$n\sigma$} keeps every token within $n$ standard deviations of the maximum logit:
 \begin{equation}
 \mathcal{C}_{\text{n-sigma}} = \{v \in V : z_v \ge \max_{u} z_u - n \cdot \sigma(\mathbf{z})\}.
 \label{eq:nsigma}
 \end{equation}
-An earlier version of this paper stated the threshold as $\mu + n\sigma$. That rule is not top-$n\sigma$, and on Llama-3.1-8B it retains tens of thousands of tokens rather than a handful. All results here use Equation~\ref{eq:nsigma}.
-
-\paragraph{Top-H.}
-Top-H~\citep{baghaei2025toph} admits tokens in descending probability until the entropy of the renormalized set reaches a fraction $\alpha$ of $H(p)$. We use $\alpha{=}0.4$.
+\paragraph{P-less} keeps tokens at least as probable as two independent draws are to collide, $\mathcal{C}_{\text{p-less}} = \{v : p(v) \ge \sum_u p(u)^2\}$. \textbf{Top-H} admits tokens in descending probability until the entropy of the renormalized set reaches a fraction $\alpha$ of $H(p)$, with $\alpha{=}0.4$.
 
 \paragraph{Temperature response.}
-The property we will show to matter is how $\mathcal{C}$ changes with $T$. Dividing $\mathbf{z}$ by $T$ scales $\max_u z_u$ and $\sigma(\mathbf{z})$ equally, so the top-$n\sigma$ set is identical at every temperature~\citep{tang2024topnsigma}, and temperature only reshapes the probabilities inside it. Top-$k$ is also fixed by construction. Every other rule here thresholds on the tempered distribution itself, so its candidate set grows as $T$ flattens $p$: slowly for min-$p$ and P-less, whose thresholds are tied to the head of the distribution, and quickly for top-$p$ and Top-H, whose thresholds are tied to cumulative mass and entropy. Top-H therefore behaves like top-$p$ under temperature, not like top-$n\sigma$, even though both read a global statistic. We measure this response directly in Section~\ref{sec:mechanism}.
+Dividing $\mathbf{z}$ by $T$ scales $\max_u z_u$ and $\sigma(\mathbf{z})$ equally, so the top-$n\sigma$ set is identical at every temperature~\citep{tang2024topnsigma}: temperature only reshapes the probabilities inside it. Top-$k$ is fixed by construction but admits its $k$ tokens even when the model is nearly certain. Every other rule thresholds on the tempered distribution, so its set grows as $T$ flattens $p$: slowly for min-$p$ and P-less, whose thresholds are tied to the head of the distribution, and quickly for top-$p$ and Top-H, whose thresholds are tied to cumulative mass and entropy. Top-H therefore behaves like top-$p$ under temperature, not like top-$n\sigma$, although both read a global statistic. The low-probability \emph{tail} that fast-growing rules admit is what high temperature turns into noise.
 
 %% ====================================================================
 \section{Experimental Setup}
 \label{sec:setup}
 %% ====================================================================
 
-\paragraph{Models.}
-The replication uses the ten models of the original study, updated to current checkpoints where the original was superseded: Llama-3.2-1B, Qwen2.5-1.5B, Qwen2.5-3B, Mistral-7B-v0.3, Llama-3.1-8B, Mistral-Nemo-12B, Qwen2.5-14B, Qwen2.5-32B, Llama-3.3-70B (all instruction-tuned)~\citep{dubey2024llama3,yang2024qwen2,jiang2023mistral}, and gpt-oss-120b. Extension studies add Qwen3.5, Gemma-4 and Qwen3 models where noted. All runs use unquantized bf16 weights on NVIDIA H200 GPUs (one RTX 5090 for the Qwen3-4B and Qwen3-8B sweeps).
-
-\paragraph{Implementation.}
-All samplers are implemented as one vLLM logits processor. Native vLLM sampling is disabled (temperature 1, top-$p$ 1, top-$k$ 0), so the processor is the only truncation and temperature rule. Each rule is checked row by row against its authors' reference implementation. Per decoding step the processor logs the entropy, the top probability, the candidate-set size, and the rank of the sampled token.
+\paragraph{Models and implementation.}
+We use 23 instruction-tuned open-weight models from 1B to 122B parameters. The ten-model core set is Llama-3.2-1B, Qwen2.5-1.5B, Qwen2.5-3B, Mistral-7B-v0.3, Llama-3.1-8B, Mistral-Nemo-12B, Qwen2.5-14B, Qwen2.5-32B, Llama-3.3-70B~\citep{dubey2024llama3,yang2024qwen2,jiang2023mistral} and gpt-oss-120b~\citep{openai2025gptoss}, and further studies add Qwen3.5 (9B, 27B, 35B-A3B, 122B-A10B), Qwen3.8-27B, Gemma-4, OLMo-3, Nemotron-3 and GLM-4.5-Air. All runs use unquantized bf16 weights on NVIDIA H200 GPUs. Every sampler runs as one vLLM logits processor that replaces native sampling, is checked against its authors' reference code, and logs the candidate-set size at every step.
 
 \paragraph{Benchmarks and protocols.}
-We evaluate on published benchmarks wherever one exists for the setting. Agentic coding uses SWE-bench Verified~\citep{jimenez2024swebench} with its official test harness. Long-form writing uses LongBench-Write~\citep{bai2025longwriter}, WritingBench~\citep{wu2025writingbench}, and the 75 English prompts of Arena-Write~\citep{wu2026longwriterzero} that require at least 2,000 words, all with natural stopping. Context-depth experiments continue PG-19 novels~\citep{rae2019compressive} from fixed depths. Because none of these benchmarks forces a model far past its natural stopping point, we add one controlled stress test: eight fiction and eight non-fiction prompts (listed in Appendix~\ref{app:prompts}) generated to a forced length of 16K tokens, with end-of-sequence disabled. A natural-length variant of the same prompts lets the model stop and continues it with a ``Continue.'' turn up to the same budget. Temperatures are $T\in\{1.0,1.5,2.0\}$ unless noted. Every wave was pre-registered, with its grid and primary outcome fixed before any output was read.
+Agentic coding uses SWE-bench Verified~\citep{jimenez2024swebench} with the mini-swe-agent harness~\citep{minisweagent,yang2024sweagent} and the official test harness. Long chain-of-thought coding uses LiveCodeBench v6~\citep{jain2025livecodebench}. Long-form writing uses LongBench-Write~\citep{bai2025longwriter}, WritingBench~\citep{wu2025writingbench} and the 75 English Arena-Write prompts~\citep{wu2026longwriterzero} that require at least 2,000 words, all with natural stopping. A controlled stress test forces eight fiction and eight non-fiction prompts (Appendix~\ref{app:prompts}) to 16K tokens with end-of-sequence disabled. Every experiment was pre-registered before its outputs were read.
 
 \paragraph{Outcomes.}
-A generation has a \emph{terminal loop} if, from some 1K-token window onward, at least 80\% of the remaining windows have 32-gram repetition at least 0.5. An LLM judge (gpt-oss-120b) scores 1.5K-token windows at fixed depths for fluency, coherence, non-repetition, interest and overall quality on a 1--10 scale, and scores the whole output globally. We call a generation \emph{healthy} if it has no terminal loop and every judged window has coherence at least 6. Lexical diversity metrics are reported only as diagnostics, because word salad scores perfectly on them.
+An LLM judge (gpt-oss-120b) scores 1.5K-token windows at fixed depths from 1 to 10. A generation has a \emph{terminal loop} if, from some 1K-token window onward, at least 80\% of the remaining windows repeat 32-grams at least half the time, and it is \emph{healthy} if it has no terminal loop and every judged window has coherence at least 6. Agentic outcomes are objective: an issue counts as resolved only if the agent's patch passes the repository's tests. We compare samplers on the same instances with exact sign tests.
 
 %% ====================================================================
 \section{Results}
 \label{sec:results}
 %% ====================================================================
 
-\subsection{At deployment temperature, no sampler prevents collapse}
-\label{sec:r1}
-
-Figure~\ref{fig:hero} and Table~\ref{tab:r1} (Appendix~\ref{app:r1}) report the forced-length replication on all ten models. At $T{=}1$ the adaptive and mass-based rules all loop. Top-$p$, min-$p$, Top-H, \pless{} and top-$n\sigma$ end in a terminal loop in 95--100\% of generations, the same rate as greedy decoding. The judge scores the opening window of each between 4.8 and 5.2 and the final window between 2.5 and 2.6 out of 10, with overlapping bootstrap intervals, so the rules cannot be separated on quality. Only pure sampling and top-$k$, the two rules that keep a wide candidate set at every step, loop less often (41\% and 56\%), and they do not end any better (final window 2.5 and 2.7). Under our pre-registered definition, which requires no terminal loop and judged coherence of at least 6 in every window, at most 2.5\% of generations in any $T{=}1$ cell are healthy.
-
-
-
-Raising the temperature is the obvious way to break a loop. At $T{=}2$ it removes loops almost completely for top-$p$, top-$k$, Top-H, pure sampling and min-$p$ (0--9\%), only partly for \pless{} (44\%), and least of all for top-$n\sigma$ (71\%). The rules diverge in what they give up to get there. At $T{=}2$, top-$p$, top-$k$, Top-H and pure sampling stop looping entirely, and their first-window score falls to 1.0--2.0, because the text is now word salad from the opening paragraph. Min-$p$ and \pless{} fall partway, to 3.8 and 3.6. Top-$n\sigma$ is the only rule whose first-window score is unchanged between $T{=}1$ and $T{=}2$ (5.2 and 5.1), and it still loops in 71\% of generations at $T{=}2$. Non-fiction shows the same pattern (Appendix~\ref{app:nonfic}).
-
-The sampler therefore does not decide \emph{whether} a forced long generation survives. It decides \emph{how} the generation fails once temperature is used to escape the loop.
-
-\subsection{The same split on published long-writing benchmarks}
-\label{sec:bench}
-
-Forced length is a stress test. Published long-writing benchmarks let the model stop on its own and score what it writes against the task. Figure~\ref{fig:bench} reports the 75 English Arena-Write prompts that ask for at least 2,000 words~\citep{wu2026longwriterzero}, judged window by window with the protocol of Section~\ref{sec:setup}, and the official LongBench-Write score~\citep{bai2025longwriter}, which combines length adherence and judged quality (numbers in Table~\ref{tab:bench}, Appendix~\ref{app:numbers}).
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.78\textwidth]{figures/fig_bench.pdf}
-\caption{\textbf{On published long-writing benchmarks with natural stopping, the samplers are tied at $T{=}1$ and separate by their tail behavior as temperature rises.} Left: fraction of Arena-Write generations that are healthy (no terminal loop and judged coherence at least 6 in every window), nine models including Llama-3.3-70B, gpt-oss-120b and Qwen3.5-122B-A10B (two samples per prompt on six of them). Right: official LongBench-Write score $S$ (0--100), eight models including Qwen3.5-122B-A10B.}
-\label{fig:bench}
-\end{figure}
-
-At $T{=}1$ every truncation rule is healthy on 90--93\% of Arena-Write generations and scores 78--81 on LongBench-Write, the same tie as under forced length. At $T{=}2$, top-$n\sigma$ is unchanged on both benchmarks (0.93 healthy, $S{=}80.6$), \pless{} and min-$p$ lose some ground (0.74 and 0.69 healthy), and the tail-admitting rules collapse: Top-H 0.10, top-$k$ 0.15 and top-$p$ 0.01 healthy, with LongBench-Write scores of 38, 43 and 21. WritingBench~\citep{wu2025writingbench}, scored by its released critic model on 555 queries and six models including Llama-3.3-70B and gpt-oss-120b, agrees: every rule scores 6.8--6.9 out of 10 at $T{=}1$, and at $T{=}2$ top-$n\sigma$ scores 6.9 while top-$p$ scores 2.2 and pure sampling 1.3. Without forced length the healthy rate is far from zero, so these benchmarks rank the rules directly, and they rank them the same way the forced-length grid and the candidate-set measurements do.
-
-\subsection{The temperature response of the candidate set}
-\label{sec:mechanism}
-
-Figure~\ref{fig:pool} and Table~\ref{tab:pool} (Appendix~\ref{app:numbers}) report the median number of tokens each rule actually admits per step, measured by the logits processor over the first 2,048 generated tokens, before loops set in. Two facts explain Table~\ref{tab:r1}.
-
-
-
-
-
-\begin{wrapfigure}{r}{0.44\textwidth}
-\vspace{-12pt}
-\centering
-\includegraphics[width=0.44\textwidth]{figures/fig_pool.pdf}
-\caption{\textbf{Only top-$n\sigma$ and top-$k$ admit the same number of tokens at every temperature.} Median tokens admitted per decoding step (log scale) over the first 2K tokens of the Figure~\ref{fig:map} generations, eight models, 64 generations per point.}
-\label{fig:pool}
-\vspace{-10pt}
-\end{wrapfigure}
-First, at $T{=}1$ the adaptive rules are close to greedy decoding. \pless{} admits a single token on 93\% of steps, and min-$p$, Top-H and top-$n\sigma$ on 52--62\%. A rule that keeps one candidate cannot break a loop no matter how it chose that candidate, which is why their loop rates match greedy.
-
-Second, the rules split by how the candidate set responds to temperature. The top-$n\sigma$ set is identical at every temperature by construction (Section~\ref{sec:method}), and its realized median stays at 1 (2 in the eight-model map of Figure~\ref{fig:pool}). Min-$p$ and \pless{} grow slowly (1 to 14 and 1 to 21 between $T{=}1$ and $T{=}2$). Top-H grows like a mass-based rule (1 to 54), and top-$p$ explodes to most of the vocabulary. The faster a rule's candidate set grows, the sooner temperature lets it escape loops, and the sooner it admits the noise tail that produces word salad. Top-H, despite reading a global statistic of the distribution, behaves like top-$p$ here, so ``full-distribution-aware'' does not describe a shared mechanism. What predicts behavior is the temperature response of the realized candidate set.
-
-\subsection{Where each sampler stays usable}
-\label{sec:map}
-
-Tables~\ref{tab:r1} and~\ref{tab:pool} fix one hyperparameter per rule. To check that the split is a property of the rules and not of those settings, we map 22 settings across seven temperatures from 0.7 to 3.0 on eight models from five families (Llama-3.2-1B, Llama-3.1-8B, Qwen2.5-3B, Qwen2.5-14B, Qwen3.5-9B, Gemma-4-12B, OLMo-3-7B, Nemotron-3-Nano-4B), with 64 forced 8K-token generations per cell (Figure~\ref{fig:map}).
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\textwidth]{figures/fig_map.pdf}
-\caption{\textbf{Only top-$n\sigma$ keeps its judged quality as temperature rises. Every other family has a cliff, and its hyperparameter only moves it.} Mean judged window quality (1--10) over eight models and 64 forced 8K-token generations per point. Lighter to darker lines follow the listed hyperparameter values. Dotted gray: pure sampling. The horizontal line at 4.0 marks roughly the quality every rule reaches at $T{\le}1$.}
-\label{fig:map}
-\end{figure}
-
-Every family except top-$n\sigma$ has a cliff. Top-$p$ falls below 1.5 by $T{=}1.6$ at every $p$ we tried. Top-H with $\alpha{\ge}0.4$ and top-$k$ 200 fall below 1.5 within one or two further steps and top-$k$ 50 by $T{=}3$, while Top-H 0.2 and top-$k$ 10 degrade more slowly (1.9 and 2.4 at $T{=}3$). Min-$p$'s hyperparameter moves the cliff: $p{=}0.02$ collapses after $T{=}1.3$, $p{=}0.1$ after 1.6, and $p{=}0.3$ stays above 4 through $T{=}2.5$ and is at 4.0 by $T{=}3$, so min-$p$ can be tuned to survive a higher target temperature at the cost of a tighter candidate set everywhere below it. Top-$n\sigma$ with $n\le1$ has no cliff in this range, holding a mean window quality of 4.2--4.7 from $T{=}0.7$ to $T{=}3.0$, as its temperature invariance predicts. Larger $n$ admits more of the noise tail at every temperature and brings the cliff back ($n{=}3$ collapses after $T{=}1$).
-
-What no setting buys is a healthy long generation. Under the pre-registered definition, no cell of the entire map is healthy in more than 31\% of generations, and top-$n\sigma$ $n{=}1$ still ends in a terminal loop in 44--69\% of generations at every temperature. Top-$n\sigma$ widens the range of usable temperatures. It does not fix collapse at length.
-
-\subsection{Fixing the candidate set removes the cliff, when the set excludes the tail}
-\label{sec:ablation}
-
-If temperature hurts temperature-growing rules because it changes \emph{which} tokens are admitted, then deciding the candidate set at $T{=}1$ and applying temperature only inside it should remove the cliff. We pre-registered this prediction for top-$p$ and Top-H (judged quality at $t{=}2$ within one point of $T{=}1$) and tested it for five rules on the four models of Figure~\ref{fig:map} (Figure~\ref{fig:tl}, numbers in Table~\ref{tab:tl}, 32 generations per cell).
-
-
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\textwidth]{figures/fig_tl.pdf}
-\caption{\textbf{Fixing the candidate set at $T{=}1$ removes the temperature cliff for Top-H, min-$p$ and \pless{}, partly for top-$p$, and not at all for top-$k$.} Same data as Table~\ref{tab:tl}.}
-\label{fig:tl}
-\end{figure}
-
-The prediction holds for Top-H, and also for min-$p$ and \pless{}. With the candidate set fixed at $T{=}1$, all three keep their $T{=}1$ quality through $t{=}3$ (4.1--4.6), where the standard order has collapsed them to 1.1--1.2. The prediction fails for top-$p$, which improves (2.6 against 1.0 at $T{=}3$) but stays far below its $T{=}1$ quality of 4.7, and top-$k$ does not improve at all. Both failures have the same cause, visible in Table~\ref{tab:pool}. Top-$k$ admits about 50 tokens at every step, including steps where the model is nearly certain, and top-$p$ at $T{=}1$ admits a median of 2 tokens but a mean of 73, because at uncertain steps it reaches deep into the tail to cover 90\% of the mass. Once those tail tokens are in the set, any temperature above 1 promotes them.
-
-The refined mechanism is therefore about the tail, not about temperature as such. A rule survives elevated temperature if its candidate set excludes low-probability tokens at the temperature that actually shapes the distribution. Temperature invariance (top-$n\sigma$) guarantees this by construction, fixing a tail-excluding set at $T{=}1$ achieves it for any rule with a tight $T{=}1$ set, and rules whose set contains the tail at $T{=}1$ cannot be rescued by reordering. The price of keeping the tail out is the same in every case. The rescued rules still loop, in 19\%, 50\% and 91\% of generations at $t{=}3$ for Top-H, min-$p$ and \pless{}.
-
-\subsection{Robustness}
-\label{sec:robust}
-
-The forced-length results replicate under every check we ran (Appendix~\ref{app:robust}). Letting the model stop and continue roughly halves the loop rate of several rules but leaves them tied at $T{=}1$, non-fiction behaves like fiction, a second seed on all ten models and six newer models show the same split, and a second judge from a different family (GLM-4.5-Air) agrees with the first at Spearman $\rho{=}0.92$ on the 22 sampler-by-temperature cell means ($\rho{=}0.74$ on 8,796 individual windows).
-
-\subsection{What a sampling stack can and cannot fix}
-\label{sec:stack}
-
-If loops are the problem and tail-admission is the cost of escaping them, two additions to the sampler are natural: a repetition penalty, and a floor that always keeps the top two tokens so that a tight rule can never be greedy. We tested both on top of each tight and tail-admitting rule, on eight of the ten models, including Llama-3.3-70B and gpt-oss-120b (Table~\ref{tab:stack}). We had predicted that DRY~\citep{weidmann2024dry} combined with a tight rule at $T{\ge}1.5$ would raise judged quality by at least one point. That prediction failed. DRY cuts the loop rate at $T{=}1$ from 95--100\% to 27--38\% for every rule, but judged quality moves by at most 0.2 points in either direction at any temperature, because the penalty replaces verbatim loops with text that is varied but no better. The top-2 floor does almost nothing at $T{=}1$, and the reason is instructive: a second candidate with probability $10^{-6}$ is never sampled. Its effect appears only with temperature. At $T{=}2$, top-$n\sigma$ plus the floor nearly eliminates terminal loops (from 75\% to 2\%) while keeping its judged quality (3.3), and it is the only loop-free configuration at $T{=}2$ that is not word salad (top-$p$, Top-H, min-$p$ and \pless{} with the floor score 1.0, 1.3, 2.4 and 2.5). A tail-excluding rule, an escape floor and an elevated temperature together remove loops without admitting the noise tail. They do not yet produce good long text, because the quality ceiling of these models at 16K is low under every sampler. On Arena-Write with natural stopping (six models), where loops are already rare, the floor changes little: top-$n\sigma$ is healthy on 0.94 of generations at $T{=}2$ with the floor against 0.93 without, and the floor lowers \pless{} at $T{=}2$ (0.60 against 0.70). In agentic coding the floor is harmful (Section~\ref{sec:agentic}).
-
-\subsection{Context depth alone does not make the sampler matter more}
-\label{sec:depth}
-
-The title invites a direct test: does a longer \emph{input} context push models into the regime where the sampler matters? We continued PG-19 novels~\citep{rae2019compressive} from depths of 2K, 16K and 64K tokens on six long-context models (and 128K on the three that support it) and measured both the model's entropy at $T{=}1$ and the judged quality gap between tail-excluding rules (min-$p$, \pless{}, top-$n\sigma$) and tail-admitting rules (top-$p$, top-$k$, Top-H, pure sampling) (Table~\ref{tab:depth}). The pre-registered answer is no. The gap is within 0.4 points of zero at $T{\le}1$ at every depth and 1.2--1.6 points at $T{=}1.3$ and $1.6$ at every depth, with no trend. Entropy at $T{=}1$ rises with depth on Qwen3.5-27B and Qwen3.5-35B-A3B (for example from 1.16 to 1.70 nats on the latter), is mixed on Qwen3.5-9B and Nemotron, near zero on Gemma-4-12B, and falls on Llama-3.1-8B. What makes long generation a sampling problem is not the length of the context the model reads. It is the length of what the model writes, which is where loops form and where temperature is needed to escape them.
-
-\subsection{Agentic coding}
+\subsection{Coding agents keep working at high temperature only with tight samplers}
 \label{sec:agentic}
 
-Agentic coding is long-context generation in its most practical form. The model issues roughly 80--150 commands and edits per episode into a context that grows to tens of thousands of tokens, and a single malformed action can end the episode. We run Qwen3.5-9B inside mini-swe-agent~\citep{minisweagent,yang2024sweagent} on fixed random subsets of SWE-bench Verified~\citep{jimenez2024swebench}, grade every patch with the official test harness, and compare each sampler with top-$p$ 0.9 at the same temperature on the same instances, as pre-registered. Table~\ref{tab:swe} reports the long-horizon variant, which allows 500 agent steps and a 262K-token window over 50 instances.
+Agentic coding is long-context generation at its most practical. An agent issues roughly 80--150 commands and edits per episode into a context of tens of thousands of tokens, and one malformed command can end the episode. Figure~\ref{fig:swe} shows SWE-bench Verified resolve rates for six Qwen3.5 configurations, and Table~\ref{tab:swe} gives paired comparisons with top-$p$ for the long-horizon setting (500 agent steps, 262K-token window).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_swe.pdf}
+\caption{\textbf{Temperature-growing rules break coding agents; tight rules keep them working.} SWE-bench Verified resolve rate by temperature for Qwen3.5 agents, mini-swe-agent with the official test harness. The last two panels are 100 fresh issues disjoint from the first panel's. Other model families: Appendix~\ref{app:extra}.}
+\label{fig:swe}
+\end{figure}
 
 \begin{table}[t]
 \centering
-\caption{\textbf{At $T{=}1$ no sampler beats top-$p$ on long-horizon agentic coding. At $T{=}1.5$ temperature-growing rules break the agent and tight rules do not.} SWE-bench Verified, Qwen3.5-9B, mini-swe-agent with a 500-step limit and 262K context, 50 fixed instances. Resolved: fraction of instances whose patch passes the official tests. W/L: instances resolved by the sampler but not by top-$p$ 0.9 at the same $T$, and the reverse. $^{*}$: two-sided sign test $p<0.05$.}
+\caption{\textbf{Long-horizon coding agents: tight rules win every disputed issue at $T{=}1.5$.} Qwen3.5-9B, 500-step limit, 262K context, 50 issues. W/L: issues resolved by the sampler but not by top-$p$ 0.9 at the same $T$, and the reverse. $^{*}$: two-sided sign test $p<0.05$.}
 \label{tab:swe}
 \small
 \input{tables/cr_swe_r3b_swelong.tex}
 \end{table}
 
-The split replicates at scale (Figure~\ref{fig:swe}). On Qwen3.5-27B and Qwen3.5-35B-A3B with the long-horizon harness, every rule resolves 56--72\% at $T{=}1$ with no significant paired difference, while at $T{=}2$ top-$p$, top-$k$, Top-H and pure sampling resolve nothing and top-$n\sigma$ resolves 72\% and 58\% (36--0 and 29--0 against top-$p$). Further runs check that this is not an artifact of one instance sample, one draw or one model. On 100 fresh SWE-bench Verified instances disjoint from the first 100, every rule resolves 44--48\% at $T{=}1$ on Qwen3.5-9B, 54--60\% on Qwen3.5-27B and 48--56\% on Qwen3.5-35B-A3B, with no significant paired difference. At $T{=}2$ top-$p$ and Top-H resolve none of these instances on any of the three models, while top-$n\sigma$ resolves 46\%, 62\% and 53\% and wins every disagreement with top-$p$ (46--0, 62--0, 53--0). An independent repeat of the long-horizon grid gives 30--42\% for every rule at $T{=}1$ with no significant difference, and top-$n\sigma$ 56\% and 60\% at $T{=}1.5$ and $2$ against 2\% and 0\% for top-$p$. Adding the top-2 floor of Section~\ref{sec:stack} to top-$n\sigma$ hurts agents (42\% and 22\%), even though it removes loops in fiction, because the floor admits a second token at every step, including steps where the agent must emit an exact command: format errors per episode rise from 0.04 to 1.4 at $T{=}1.5$ and from 0.06 to 9.6 at $T{=}2$. Long chain-of-thought coding without an agent shows the same pattern in miniature. On LiveCodeBench v6~\citep{jain2025livecodebench} with Qwen3.8-27B in thinking mode (175 problems, two samples, 32K-token budget, official tests; Table~\ref{tab:lcb}, Appendix~\ref{app:swe}), every rule scores 61--64\% pass@1 at $T{\le}1$ with no significant difference, and at $T{=}1.3$ top-$p$ 0.95 drops to 51\% while min-$p$, \pless{}, top-$n\sigma$ and Top-H stay at 63\% and win 49--53 of the problems where they disagree with top-$p$ against 6--8 losses. At $T{=}1.3$ Top-H still admits few tokens (Figure~\ref{fig:pool}), so it has not yet reached its cliff. Gemma-4 is the exception that fits the mechanism. On Gemma-4-31B no rule separates at $T{=}1.5$, on the first 50 instances or on the 100 fresh ones (49--55\% for every rule, all $p{>}0.3$), and the candidate sets explain why: in Gemma-4-31B's forced-length generations (Table~\ref{tab:r10}), top-$p$ still admits a median of one token per step at $T{=}1.5$ (33 at $T{=}2$), where Qwen3.5-27B, OLMo-3.1-32B and Llama-3.1-8B admit 28,000--143,000. We attribute this to Gemma's soft-capped final logits, which keep the distribution peaked under temperature, though we did not isolate the cap experimentally. Gemma-4-E4B resolves at most 12\% under any rule, too few to compare. OLMo-3.1-32B could not be evaluated: under every rule, including at $T{=}1$, it emits several actions per turn and mini-swe-agent ends 95\% of its episodes (over 10 configurations) for repeated format errors, so it resolves no instances.
+At $T{=}1$ every rule resolves about the same share of issues (33--37\% on the 100-issue grid, 46--56\% in the long-horizon setting). Raising the temperature separates them completely. At $T{=}2$, top-$p$, top-$k$, Top-H and pure sampling resolve 0 of 100 issues on Qwen3.5-9B, because their commands degrade into malformed text within a few turns, while top-$n\sigma$ and P-less resolve 51 and 50 and win every disputed issue (51--0 and 50--0). The long-horizon agents separate already at $T{=}1.5$: min-$p$, P-less and top-$n\sigma$ resolve 48\%, 58\% and 52\% against 0\% for top-$p$, and win 24--0, 29--0 and 26--0 ($p<10^{-6}$).
+
+The result replicates across models, issue sets and runs. On Qwen3.5-27B and Qwen3.5-35B-A3B, top-$p$, top-$k$, Top-H and pure sampling resolve nothing at $T{=}2$ while top-$n\sigma$ resolves 72\% and 58\% (36--0 and 29--0). On 100 fresh issues disjoint from the first set, top-$n\sigma$ resolves 46\%, 62\% and 53\% on the 9B, 27B and 35B-A3B models against 0\% for top-$p$ and Top-H, winning 46--0, 62--0 and 53--0. An independent repeat of the long-horizon grid gives top-$n\sigma$ 56\% and 60\% at $T{=}1.5$ and $2$ against 2\% and 0\% for top-$p$.
+
+The same holds for long chain-of-thought coding without an agent. On LiveCodeBench v6 with Qwen3.8-27B in thinking mode (175 problems, two samples, 32K-token budget; Table~\ref{tab:lcb}), all rules score 61--64\% pass@1 at $T{\le}1$, and at $T{=}1.3$ top-$p$ 0.95 drops to 51\% while min-$p$, P-less, top-$n\sigma$ and Top-H hold 63\% and win 49--53 disputed problems against 6--8 losses.
+
+\subsection{The same ranking on published long-writing benchmarks}
+\label{sec:bench}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{figures/fig_swe.pdf}
-\caption{\textbf{Temperature-growing rules break coding agents. Tight rules keep working.} SWE-bench Verified resolve rate by temperature, mini-swe-agent with the official test harness. Gemma models were run only up to $T{=}1.5$.}
-\label{fig:swe}
+\includegraphics[width=\textwidth]{figures/fig_bench.pdf}
+\caption{\textbf{On three published long-writing benchmarks, top-$n\sigma$ is the only rule unaffected by temperature.} Left: fraction of Arena-Write generations that are healthy, nine models including Llama-3.3-70B, gpt-oss-120b and Qwen3.5-122B-A10B. Middle: official LongBench-Write score. Right: WritingBench critic score (555 queries). Numbers in Table~\ref{tab:bench}.}
+\label{fig:bench}
 \end{figure}
 
-At $T{=}1$ the agentic result mirrors the fiction result. Every sampler resolves between 46\% and 56\% of instances, and no paired comparison with top-$p$ is significant (largest margin Top-H, 9 wins to 4, $p{=}0.27$). \pless{} runs the longest episodes (129 steps against 81--93 for every other rule), the agentic analogue of its near-greedy candidate set.
+Figure~\ref{fig:bench} reports Arena-Write~\citep{wu2026longwriterzero}, LongBench-Write~\citep{bai2025longwriter} and WritingBench~\citep{wu2025writingbench}, all with natural stopping. At $T{=}1$ the rules are close (90--93\% healthy on Arena-Write, LongBench-Write 78--81, WritingBench 6.8--6.9). At $T{=}2$ top-$n\sigma$ is unchanged on all three benchmarks (0.93 healthy, LongBench-Write 80.6, WritingBench 6.9), P-less and min-$p$ stay close (0.74 and 0.69 healthy), and the tail-admitting rules collapse: Top-H, top-$k$ and top-$p$ are healthy on 0.10, 0.15 and 0.01 of Arena-Write generations and score 38, 43 and 21 on LongBench-Write, and top-$p$ scores 2.2 on WritingBench.
 
-At $T{=}1.5$ the rules separate completely. Top-$p$ and pure sampling resolve nothing, because their actions degrade into malformed output within a few turns (mean episode length 16 and 7 steps, with 4--6 format errors per episode). Top-H keeps 18\%. Min-$p$, \pless{} and top-$n\sigma$ keep or exceed their $T{=}1$ rate (48\%, 58\% and 52\%) and beat top-$p$ on every instance where the two disagree (24--0, 29--0 and 26--0, all $p<10^{-6}$, two-sided sign test). On the 100-instance grid with a 250-step limit the same split holds at $T{=}2$: top-$p$, top-$k$, Top-H and pure sampling resolve 0 of 100 instances, min-$p$, whose candidate set grows more slowly, resolves 16, and top-$n\sigma$ and \pless{} resolve 51 and 50, against 33--37\% for every rule at $T{=}1$ (Appendix~\ref{app:swe}).
+\subsection{Long generations, position by position}
+\label{sec:r1}
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_hero.pdf}
+\caption{\textbf{At $T{=}2$, top-$n\sigma$ opens a long text as well as at $T{=}1$; tail-admitting rules produce word salad from the first window.} Judged quality of 1.5K-token windows by position in forced 16K-token fiction, ten models from 1B to 120B, 80 generations per line.}
+\label{fig:hero}
+\end{figure}
 
+Forcing every model to write 16K tokens shows the effect along the length of a text (Figure~\ref{fig:hero}, Table~\ref{tab:r1}). At $T{=}1$ every truncation rule starts at 4.8--5.2 out of 10 and declines toward 2.5, so the sampler choice matters little there. At $T{=}2$, top-$p$, top-$k$, Top-H and pure sampling open at 1.0--2.0 because the text is word salad from the first paragraph, min-$p$ and P-less open at 3.8 and 3.6, and top-$n\sigma$ opens at 5.1, the same as at $T{=}1$ (5.2). Top-$n\sigma$ is the only rule whose generations at $T{=}2$ are indistinguishable from its generations at $T{=}1$.
+
+\subsection{Why: the candidate set each rule admits}
+\label{sec:mechanism}
+
+\begin{wrapfigure}{r}{0.44\textwidth}
+\vspace{-12pt}
+\centering
+\includegraphics[width=0.44\textwidth]{figures/fig_pool.pdf}
+\caption{\textbf{Only top-$n\sigma$ and top-$k$ admit the same number of tokens at every temperature.} Median tokens admitted per step (log scale), eight models, 64 generations per point.}
+\label{fig:pool}
+\vspace{-10pt}
+\end{wrapfigure}
+Our logits processor records how many tokens each rule admits at every step. Figure~\ref{fig:pool} and Table~\ref{tab:glance} show the answer. The top-$n\sigma$ set does not change with temperature (median 1 in the ten-model generations, 2 in the eight-model map). Min-$p$ and P-less grow slowly (1 to 14 and 1 to 21 tokens between $T{=}1$ and $T{=}2$). Top-H grows like a mass-based rule (1 to 54), and top-$p$ grows to most of the vocabulary. The faster a rule's candidate set grows, the more low-probability tokens temperature can promote, and those tokens are what turn a story into word salad and a shell command into a format error. This one measurement separates the rules into the same two groups that the benchmarks and agents do.
+
+\subsection{Where each sampler stays usable}
+\label{sec:map}
+
+To check that this is a property of the rules and not of one hyperparameter, we map 22 settings across seven temperatures from 0.7 to 3.0 on eight models from five families, with 64 forced 8K-token generations per cell (Figure~\ref{fig:map}). Top-$n\sigma$ with $n\le1$ holds a judged quality of 4.2--4.7 from $T{=}0.7$ all the way to $T{=}3.0$, as its temperature invariance predicts. For the other families the hyperparameter only moves the cliff. Top-$p$ falls below 1.5 by $T{=}1.6$ at every $p$. Min-$p$ survives higher temperatures as $p$ grows ($p{=}0.02$ collapses after $T{=}1.3$, $p{=}0.1$ after 1.6, and $p{=}0.3$ stays above 4 through $T{=}2.5$), at the cost of a tighter candidate set everywhere below.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_map.pdf}
+\caption{\textbf{Only top-$n\sigma$ keeps its judged quality as temperature rises; every other family has a cliff.} Mean judged window quality over eight models and 64 forced 8K-token generations per point. Lighter to darker lines follow the listed hyperparameter values. Dotted gray: pure sampling.}
+\label{fig:map}
+\end{figure}
+
+\subsection{A causal test: fix the candidate set, remove the cliff}
+\label{sec:ablation}
+
+If high temperature hurts because it changes \emph{which} tokens are admitted, then deciding the candidate set at $T{=}1$ and applying temperature only inside it should remove the cliff. We pre-registered this test (Figure~\ref{fig:tl}, Table~\ref{tab:tl}). With the set fixed at $T{=}1$, Top-H, min-$p$ and P-less keep their $T{=}1$ quality through $t{=}3$ (4.1--4.6), where the standard order has collapsed them to 1.1--1.2. The rescue is specific to rules whose $T{=}1$ set already excludes the tail: top-$p$ at $T{=}1$ admits a mean of 73 tokens because it reaches deep into the tail at uncertain steps, and top-$k$ always admits 50, so fixing their sets helps them only partly or not at all. Excluding the tail is the property that matters, and top-$n\sigma$ has it at every temperature by construction.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_tl.pdf}
+\caption{\textbf{Fixing the candidate set at $T{=}1$ removes the temperature cliff for Top-H, min-$p$ and P-less.} Dashed: standard order (temperature first). Solid: set decided at $T{=}1$, sampling at $t$. Four models, 32 generations per point.}
+\label{fig:tl}
+\end{figure}
+
+\subsection{Robustness}
+\label{sec:robust}
+
+The results replicate under every check we ran (Appendix~\ref{app:robust}): a second seed on all ten core models; six newer models including GLM-4.5-Air and Qwen3.5-122B-A10B, where top-$n\sigma$ opens at 7.4 at $T{=}2$ against 1.7 for top-$p$; natural-length generation in which the model may stop and is asked to continue; and non-fiction. A second judge from a different model family (GLM-4.5-Air) agrees with the first at Spearman $\rho{=}0.92$ on the 22 sampler-by-temperature cell means ($\rho{=}0.74$ on 8,796 individual windows).
 
 %% ====================================================================
-\section{Discussion}
+\section{Practical Guidance}
 \label{sec:discussion}
 %% ====================================================================
 
-\paragraph{Why adaptivity does not prevent loops.}
-The adaptive rules do what they claim: their candidate sets shrink when the model is confident. A repetition loop is a state of extreme confidence, so inside a loop these rules keep one token, and \pless{} at $T{=}1$ keeps one token on 93\% of steps even outside loops. Adaptivity avoids the noise tail but cannot escape a loop once it starts. The only escape the samplers offer is temperature, and temperature is exactly where they split.
+\paragraph{If you raise the temperature, use a rule that excludes the tail.}
+A rule whose candidate set grows with $T$ couples two things a practitioner wants to control separately: how much randomness to inject among plausible tokens, and how far into the implausible tail to reach. Top-$n\sigma$ with $n\le1$ decouples them by construction. Min-$p$ with a larger $p$, or any tight rule whose set is decided at $T{=}1$, decouples them in practice.
 
-\paragraph{Why the tail decides.}
-A rule whose candidate set grows with $T$ couples two things a practitioner wants to control separately: how much randomness to inject among plausible tokens, and how far into the implausible tail to reach. Top-$n\sigma$ decouples them by construction, and the temperature-last ablation shows that any rule with a tight set at $T{=}1$ can be decoupled the same way. That is why top-$n\sigma$ is the only rule without a cliff in Figure~\ref{fig:map}, and why top-$n\sigma$, whose set is invariant, and \pless{}, whose set grows only modestly by $T{=}2$, keep their LongBench-Write, WritingBench and agentic scores there.
+\paragraph{Long and agentic generation is where this matters.}
+At the default temperature the samplers we tested perform alike, so short benchmarks run at $T{=}1$ will not reveal these differences. Long generation keeps pushing models into the high-temperature regime, to diversify long texts, to explore in best-of-$n$ selection and reinforcement-learning rollouts, and to escape repetition. In that regime the sampler decides whether a long text stays coherent and whether an agent keeps working at all.
 
-\paragraph{Long context as a sampling problem.}
-Sampling is not a cure for late-context collapse: forced to 16K tokens, every model and every rule we tested degrades, and context depth alone does not change which sampler wins. But long generation keeps pushing models into the regime where the sampler matters, through the loops that form in what they write, the elevated temperatures used to escape those loops, and the temperatures used for exploration in best-of-$n$ selection and reinforcement-learning rollouts. In that regime the sampler decides whether the generation, or the agent, keeps working at all.
+\paragraph{Report what the sampler actually admits.}
+Nominal hyperparameters hide the property that matters. Reporting the realized candidate-set size per step, as our processor does, would let sampler comparisons predict behavior across temperatures.
 
 %% ====================================================================
 \section{Conclusion}
 \label{sec:conclusion}
 %% ====================================================================
 
-At $T{=}1$ no truncation rule prevents late-context collapse, and none beats top-$p$ on long-horizon agentic coding. Under elevated temperature the sampler decides whether long generation and agents survive, and the temperature response of the realized candidate set predicts which rules do. Top-$p$, top-$k$ and Top-H break, min-$p$ and \pless{} bend, and top-$n\sigma$, whose candidate set is provably temperature invariant, holds. Practitioners who raise temperature for diversity or exploration in long or agentic generation should use a temperature-invariant rule, and evaluations of samplers should report the candidate-set size each rule actually realizes rather than its hyperparameter alone.
+The sampler is a free and powerful control on long-context generation. Across 23 models, three long-writing benchmarks, forced 16K-token generation and coding agents, samplers whose candidate set excludes the low-probability tail keep working when the temperature rises, and samplers that admit the tail fall apart: top-$n\sigma$ agents resolve 46--62\% of SWE-bench Verified issues at $T{=}2$ where top-$p$ agents resolve none. The realized candidate set predicts which rule is which, and fixing it at $T{=}1$ rescues the rules it can. Long-context generation is a sampling problem the moment you turn up the heat.
 
 %% ====================================================================
 \bibliography{refs}
@@ -286,6 +256,35 @@ At $T{=}1$ no truncation rule prevents late-context collapse, and none beats top
 %% ====================================================================
 \newpage
 \appendix
+
+\section{Additional analyses}
+\label{app:extra}
+
+\subsection{Behavior at the default temperature and under forced length}
+At $T{=}1$ under forced 16K-token generation, top-$p$, min-$p$, Top-H, \pless{} and top-$n\sigma$ end in a terminal loop in 95--100\% of generations, the same rate as greedy decoding, and top-$k$ and pure sampling in 56\% and 41\% (Table~\ref{tab:r1}). Under our pre-registered definition, which requires no terminal loop and judged coherence of at least 6 in every window, at most 2.5\% of generations in any $T{=}1$ cell are healthy. What no setting buys is a healthy long generation. Under the pre-registered definition, no cell of the entire map is healthy in more than 31\% of generations, and top-$n\sigma$ $n{=}1$ still ends in a terminal loop in 44--69\% of generations at every temperature. Top-$n\sigma$ widens the range of usable temperatures. It does not fix collapse at length. Raising the temperature removes loops for the tail-admitting rules only by producing word salad, and top-$n\sigma$ still loops in 71\% of generations at $T{=}2$. The sampler therefore controls how a forced long generation behaves under temperature, not whether a model that tends to loop will loop.
+
+\subsection{Repetition penalties and an escape floor}
+\label{sec:stack}
+
+If loops are the problem and tail-admission is the cost of escaping them, two additions to the sampler are natural: a repetition penalty, and a floor that always keeps the top two tokens so that a tight rule can never be greedy. We tested both on top of each tight and tail-admitting rule, on eight of the ten models, including Llama-3.3-70B and gpt-oss-120b (Table~\ref{tab:stack}). We had predicted that DRY~\citep{weidmann2024dry} combined with a tight rule at $T{\ge}1.5$ would raise judged quality by at least one point. That prediction failed. DRY cuts the loop rate at $T{=}1$ from 95--100\% to 27--38\% for every rule, but judged quality moves by at most 0.2 points in either direction at any temperature, because the penalty replaces verbatim loops with text that is varied but no better. The top-2 floor does almost nothing at $T{=}1$, and the reason is instructive: a second candidate with probability $10^{-6}$ is never sampled. Its effect appears only with temperature. At $T{=}2$, top-$n\sigma$ plus the floor nearly eliminates terminal loops (from 75\% to 2\%) while keeping its judged quality (3.3), and it is the only loop-free configuration at $T{=}2$ that is not word salad (top-$p$, Top-H, min-$p$ and \pless{} with the floor score 1.0, 1.3, 2.4 and 2.5). A tail-excluding rule, an escape floor and an elevated temperature together remove loops without admitting the noise tail. They do not yet produce good long text, because the quality ceiling of these models at 16K is low under every sampler. On Arena-Write with natural stopping (six models), where loops are already rare, the floor changes little: top-$n\sigma$ is healthy on 0.94 of generations at $T{=}2$ with the floor against 0.93 without, and the floor lowers \pless{} at $T{=}2$ (0.60 against 0.70).
+
+In agentic coding the floor is harmful. Adding the top-2 floor of Section~\ref{sec:stack} to top-$n\sigma$ hurts agents (42\% and 22\%), even though it removes loops in fiction, because the floor admits a second token at every step, including steps where the agent must emit an exact command: format errors per episode rise from 0.04 to 1.4 at $T{=}1.5$ and from 0.06 to 9.6 at $T{=}2$. 
+
+\subsection{Context depth}
+\label{sec:depth}
+
+The title invites a direct test: does a longer \emph{input} context push models into the regime where the sampler matters? We continued PG-19 novels~\citep{rae2019compressive} from depths of 2K, 16K and 64K tokens on six long-context models (and 128K on the three that support it) and measured both the model's entropy at $T{=}1$ and the judged quality gap between tail-excluding rules (min-$p$, \pless{}, top-$n\sigma$) and tail-admitting rules (top-$p$, top-$k$, Top-H, pure sampling) (Table~\ref{tab:depth}). The pre-registered answer is no. The gap is within 0.4 points of zero at $T{\le}1$ at every depth and 1.2--1.6 points at $T{=}1.3$ and $1.6$ at every depth, with no trend. Entropy at $T{=}1$ rises with depth on Qwen3.5-27B and Qwen3.5-35B-A3B (for example from 1.16 to 1.70 nats on the latter), is mixed on Qwen3.5-9B and Nemotron, near zero on Gemma-4-12B, and falls on Llama-3.1-8B. What makes long generation a sampling problem is not the length of the context the model reads. It is the length of what the model writes, which is where loops form and where temperature is needed to escape them.
+
+\subsection{Other model families in agentic coding}
+Gemma-4 is the exception that fits the mechanism. On Gemma-4-31B no rule separates at $T{=}1.5$, on the first 50 instances or on the 100 fresh ones (49--55\% for every rule, all $p{>}0.3$), and the candidate sets explain why: in Gemma-4-31B's forced-length generations (Table~\ref{tab:r10}), top-$p$ still admits a median of one token per step at $T{=}1.5$ (33 at $T{=}2$), where Qwen3.5-27B, OLMo-3.1-32B and Llama-3.1-8B admit 28,000--143,000. We attribute this to Gemma's soft-capped final logits, which keep the distribution peaked under temperature, though we did not isolate the cap experimentally. Gemma-4-E4B resolves at most 12\% under any rule, too few to compare. OLMo-3.1-32B could not be evaluated: under every rule, including at $T{=}1$, it emits several actions per turn and mini-swe-agent ends 95\% of its episodes (over 10 configurations) for repeated format errors, so it resolves no instances.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.6\textwidth]{figures/fig_swe_gemma.pdf}
+\caption{SWE-bench Verified resolve rate for Gemma-4 agents.}
+\label{fig:swe_gemma}
+\end{figure}
+
 
 \section{SWE-bench Verified: 100-instance grid}
 \label{app:swe}
@@ -319,6 +318,8 @@ Qwen3.5-9B, mini-swe-agent, 250-step limit, 100 fixed instances, three temperatu
 
 \section{Candidate sets and the temperature-last ablation in numbers}
 \label{app:numbers}
+
+\paragraph{Figure~\ref{fig:teaser}(a).} Llama-3.1-8B-Instruct decodes the science-fiction prompt greedily for 512 tokens. Among the steps whose top probability lies in $[0.3,0.7]$, we show the one with the median entropy (step 329, context ``\ldots It had been launched over three hundred years ago,'', $p_{\max}{=}0.45$, $H{=}1.43$ nats). Candidate-set sizes are computed exactly on the full 128K-token vocabulary.
 
 \begin{table}[h]
 \centering
