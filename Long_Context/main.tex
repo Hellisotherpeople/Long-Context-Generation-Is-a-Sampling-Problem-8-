@@ -35,7 +35,7 @@
 
 
 \begin{abstract}
-Long generations from open-weight language models drift into repetition and incoherence, and the usual fix is more training. We show that the sampler, the rule that turns a model's next-token probabilities into an actual token, is a powerful and free lever on long-context generation, and we identify the one property that decides which samplers work. Across 22 open-weight models from 1B to 122B parameters, three published long-writing benchmarks, forced 16K-token generation, and coding agents on SWE-bench Verified, the result is the same: once the sampling temperature rises above 1, samplers whose candidate set stays small and stable degrade little or not at all, while samplers that let low-probability tokens in fall apart. Coding agents using top-$p$, top-$k$ or Top-H at $T{=}2$ resolve 0 of 100 GitHub issues; the same agents using top-$n\sigma$ resolve 46--62, winning every disputed issue on three Qwen3.5 models. On LongBench-Write, top-$n\sigma$ scores 80.6 at $T{=}2$ against 21 for top-$p$. Measuring the tokens each rule admits per step explains why: at one real decoding step, raising $T$ from 1 to 2 takes top-$p$ from 4 candidate tokens to 51,845, while top-$n\sigma$ keeps the same 3. A causal test confirms it: deciding the candidate set at $T{=}1$ and applying temperature only inside it rescues Top-H, min-$p$ and P-less. At the default $T{=}1$ the truncation rules reach similar quality and resolve rates, so the choice matters most when long and agentic generation turn up the heat, through exploration, best-of-$n$ selection, or escaping repetition.
+Long generations from open-weight language models drift into repetition and incoherence, and the usual fix is more training. We show that the sampler, the rule that turns a model's next-token probabilities into an actual token, is a powerful and free lever on long-context generation, and we identify the one property that decides which samplers work. Across 23 open-weight models from 1B to 122B parameters, three published long-writing benchmarks, forced 16K-token generation, and coding agents on SWE-bench Verified, the result is the same: once the sampling temperature rises above 1, samplers whose candidate set stays small and stable degrade little or not at all, while samplers that let low-probability tokens in fall apart. Coding agents using top-$p$, top-$k$ or Top-H at $T{=}2$ resolve 0 of 100 GitHub issues; the same agents using top-$n\sigma$ resolve 46--62, winning every disputed issue on three Qwen3.5 models. On LongBench-Write, top-$n\sigma$ scores 80.6 at $T{=}2$ against 21 for top-$p$. Measuring the tokens each rule admits per step explains why: at one real decoding step, raising $T$ from 1 to 2 takes top-$p$ from 4 candidate tokens to 51,845, while top-$n\sigma$ keeps the same 3. A causal test confirms it: deciding the candidate set at $T{=}1$ and applying temperature only inside it rescues Top-H, min-$p$ and P-less. At the default $T{=}1$ the truncation rules reach similar quality and resolve rates, so the choice matters most when long and agentic generation turn up the heat, through exploration, best-of-$n$ selection, or escaping repetition.
 \end{abstract}
 
 %% ====================================================================
@@ -122,7 +122,7 @@ Dividing $\mathbf{z}$ by $T$ scales $\max_u z_u$ and $\sigma(\mathbf{z})$ equall
 %% ====================================================================
 
 \paragraph{Models and implementation.}
-We use 22 instruction-tuned open-weight models from 1B to 122B parameters. The ten-model core set is Llama-3.2-1B, Qwen2.5-1.5B, Qwen2.5-3B, Mistral-7B-v0.3, Llama-3.1-8B, Mistral-Nemo-12B, Qwen2.5-14B, Qwen2.5-32B, Llama-3.3-70B~\citep{dubey2024llama3,yang2024qwen2,jiang2023mistral} and gpt-oss-120b~\citep{openai2025gptoss}, and further studies add Qwen3.5 (9B, 27B, 35B-A3B, 122B-A10B), Qwen3.8-27B, Gemma-4 (E4B, 12B, 31B), OLMo-3 (7B, 3.1-32B), Nemotron-3 (Nano-4B, Nano-30B-A3B) and GLM-4.5-Air. All runs use the released weights (bf16, and native MXFP4 for gpt-oss-120b) on NVIDIA H200 GPUs. Every sampler runs as one vLLM logits processor that replaces native sampling, is checked against its authors' reference code, and logs the candidate-set size at every step.
+We use 23 instruction-tuned open-weight models from 1B to 122B parameters. The ten-model core set is Llama-3.2-1B, Qwen2.5-1.5B, Qwen2.5-3B, Mistral-7B-v0.3, Llama-3.1-8B, Mistral-Nemo-12B, Qwen2.5-14B, Qwen2.5-32B, Llama-3.3-70B~\citep{dubey2024llama3,yang2024qwen2,jiang2023mistral} and gpt-oss-120b~\citep{openai2025gptoss}, and further studies add Qwen3.5 (9B, 27B, 35B-A3B, 122B-A10B), Qwen3.6-27B, Qwen3.8-27B, Gemma-4 (E4B, 12B, 31B), OLMo-3 (7B, 3.1-32B), Nemotron-3 (Nano-4B, Nano-30B-A3B) and GLM-4.5-Air. All runs use the released weights (bf16, and native MXFP4 for gpt-oss-120b) on NVIDIA H200 GPUs. Every sampler runs as one vLLM logits processor that replaces native sampling, is checked against its authors' reference code, and logs the candidate-set size at every step.
 
 \paragraph{Benchmarks and protocols.}
 Agentic coding uses SWE-bench Verified~\citep{jimenez2024swebench} with the mini-swe-agent harness~\citep{minisweagent,yang2024sweagent} and the official test harness. Long chain-of-thought coding uses LiveCodeBench v6~\citep{jain2025livecodebench}. Long-form writing uses LongBench-Write~\citep{bai2025longwriter}, WritingBench~\citep{wu2025writingbench} and the 75 English Arena-Write prompts~\citep{wu2026longwriterzero} that require at least 2,000 words, all with natural stopping. A controlled stress test forces eight fiction and eight non-fiction prompts (Appendix~\ref{app:prompts}) to 16K tokens with end-of-sequence disabled. Every experiment was pre-registered before its outputs were read.
@@ -159,7 +159,7 @@ At $T{=}1$ every rule resolves about the same share of issues (33--37\% on the 1
 
 The result replicates across models, issue sets and runs. On Qwen3.5-27B and Qwen3.5-35B-A3B, top-$p$, top-$k$, Top-H and pure sampling resolve nothing at $T{=}2$ while top-$n\sigma$ resolves 72\% and 58\% (36--0 and 29--0). On 100 fresh issues disjoint from the first set, top-$n\sigma$ resolves 46\%, 62\% and 53\% on the 9B, 27B and 35B-A3B models against 0\% for top-$p$ and Top-H, winning 46--0, 62--0 and 53--0. An independent repeat of the long-horizon grid gives top-$n\sigma$ 56\% and 60\% at $T{=}1.5$ and $2$ against 2\% and 0\% for top-$p$.
 
-The same holds for long chain-of-thought coding without an agent. On LiveCodeBench v6 with Qwen3.8-27B in thinking mode (175 problems, two samples, 32K-token budget; Table~\ref{tab:lcb}), all rules score 61--64\% pass@1 at $T{\le}1$, and at $T{=}1.3$ top-$p$ 0.95 drops to 51\% while min-$p$, P-less, top-$n\sigma$ and Top-H hold 63\% and win 49--53 disputed problem-samples against 6--8 losses ($T{=}1.3$ is below Top-H's cliff).
+The same holds for long chain-of-thought coding without an agent. On LiveCodeBench v6 with Qwen3.8-27B in thinking mode (175 problems, two samples, 32K-token budget; Table~\ref{tab:lcb}), all rules score 61--64\% pass@1 at $T{\le}1$, and at $T{=}1.3$ top-$p$ 0.95 drops to 51\% while min-$p$, P-less, top-$n\sigma$ and Top-H hold 63\% and win 49--53 disputed problem-samples against 6--8 losses ($T{=}1.3$ is below Top-H's cliff). On Qwen3.6-27B, which exhausts its 32K budget on about half of all samples, top-$n\sigma$ again beats top-$p$ at $T{=}1.3$ (50.3\% against 46.3\%, 24--10, $p{=}0.02$; Table~\ref{tab:lcb36}).
 
 \subsection{The same ranking on published long-writing benchmarks}
 \label{sec:bench}
@@ -246,7 +246,7 @@ Nominal hyperparameters hide the property that matters. Reporting the realized c
 \label{sec:conclusion}
 %% ====================================================================
 
-The sampler is a free and powerful control on long-context generation. Across 22 models, three long-writing benchmarks, forced 16K-token generation and coding agents, samplers whose candidate set stays small and stable degrade little or not at all when the temperature rises, and samplers that admit the low-probability tail fall apart: top-$n\sigma$ agents resolve 46--62\% of SWE-bench Verified issues at $T{=}2$ where top-$p$ agents resolve none. The realized candidate set, small at $T{=}1$ and stable as $T$ rises, predicts which rule is which, and fixing it at $T{=}1$ rescues the rules it can. Long-context generation is a sampling problem the moment you turn up the heat.
+The sampler is a free and powerful control on long-context generation. Across 23 models, three long-writing benchmarks, forced 16K-token generation and coding agents, samplers whose candidate set stays small and stable degrade little or not at all when the temperature rises, and samplers that admit the low-probability tail fall apart: top-$n\sigma$ agents resolve 46--62\% of SWE-bench Verified issues at $T{=}2$ where top-$p$ agents resolve none. The realized candidate set, small at $T{=}1$ and stable as $T$ rises, predicts which rule is which, and fixing it at $T{=}1$ rescues the rules it can. Long-context generation is a sampling problem the moment you turn up the heat.
 
 %% ====================================================================
 \bibliography{refs}
@@ -313,7 +313,15 @@ Qwen3.5-9B, mini-swe-agent, 250-step limit, 100 fixed instances, three temperatu
 \caption{LiveCodeBench v6, Qwen3.8-27B in thinking mode, 175 problems $\times$ 2 samples, 32K tokens, official tests in a sandbox. W/L: problem-samples solved by the rule but not by top-$p$ 0.95 at the same $T$, and the reverse. $^{*}$: sign test $p<0.05$.}
 \label{tab:lcb}
 \small
-\input{tables/cr_lcb.tex}
+\input{tables/cr_lcb_qwen3.8-27b.tex}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{LiveCodeBench v6, Qwen3.6-27B in thinking mode, same protocol as Table~\ref{tab:lcb}. This model exhausts the 32K-token budget on 44--53\% of samples in every cell. At $T{=}0.6$, \pless{} and Top-H lose to top-$p$.}
+\label{tab:lcb36}
+\small
+\input{tables/cr_lcb_qwen3.6-27b.tex}
 \end{table}
 
 \section{Candidate sets and the temperature-last ablation in numbers}
