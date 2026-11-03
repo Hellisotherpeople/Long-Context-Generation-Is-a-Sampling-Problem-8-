@@ -7,12 +7,12 @@
 \item {\bf Claims}
     \item[] Question: Do the main claims made in the abstract and introduction accurately reflect the paper's contributions and scope?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The abstract and introduction state a negative result at $T{=}1$ (no sampler prevents forced-length collapse or beats top-$p$ on agentic coding), the candidate-set temperature-response mechanism, and the agentic results under elevated temperature. Each is backed by Tables~\ref{tab:r1}--\ref{tab:swe} and Figure~\ref{fig:map}, and the claims are scoped to the regimes measured.
+    \item[] Justification: The abstract and introduction claim that samplers whose candidate set stays small and stable keep coding agents and long-form writing working when temperature rises, while tail-admitting samplers collapse, and that the realized candidate set explains this. Each claim is backed by Figures~\ref{fig:teaser}--\ref{fig:tl} and Tables~\ref{tab:glance}--\ref{tab:swe}, and is scoped to temperatures above 1. The abstract states that at $T{=}1$ the truncation rules perform similarly, and Appendix~\ref{app:extra} reports the regimes where no sampler prevents degradation.
 
 \item {\bf Limitations}
     \item[] Question: Does the paper discuss the limitations of the work performed by the authors?
     \item[] Answer: \answerYes{}
-    \item[] Justification: Appendix~\ref{sec:limitations} covers the single LLM judge, model and harness coverage, statistical resolution, the artificiality of forced length, corrections to earlier versions, and implementation.
+    \item[] Justification: Appendix~\ref{sec:limitations} covers the single LLM judge, model and harness coverage, statistical resolution, the artificiality of forced length, corrections to earlier versions, and implementation, and Appendix~\ref{app:extra} reports results at the default temperature, repetition penalties, context depth and other model families.
 
 \item {\bf Theory Assumptions and Proofs}
     \item[] Question: For each theoretical result, does the paper provide the full set of assumptions and a complete (correct) proof?
