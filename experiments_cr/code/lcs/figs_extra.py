@@ -30,7 +30,7 @@ def fig_teaser(H, S, INK, save):
     axc = fig.add_subplot(gs[0, 0:2]); axc.axis("off")
     axc.add_patch(mpl.patches.FancyBboxPatch((0.0, 0.0), 1.0, 1.0, boxstyle="round,pad=0.0,rounding_size=0.06",
                   transform=axc.transAxes, fc="#f6f5f1", ec="#cfcdc6", lw=0.6, clip_on=False))
-    axc.text(0.015, 0.93, "(a) One real decoding step, Llama-3.1-8B-Instruct writing a story (step 329)", transform=axc.transAxes,
+    axc.text(0.015, 0.93, "(a) Llama-3.1-8B-Instruct writing a story (step 329)", transform=axc.transAxes,
              fontsize=7.6, fontweight="bold", va="top", color=INK)
     ctx = d["context"].strip(); tail = ctx.rsplit(". ", 1)[1]
     hi = dict(bbox=dict(boxstyle="round,pad=0.2", fc=NS, ec="none"), color="white", fontweight="bold")
