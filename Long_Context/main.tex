@@ -102,29 +102,27 @@ It has been known for years that neural text generators fall into repetition ove
 \label{sec:method}
 %% ====================================================================
 
-Table~\ref{tab:glance} describes each rule we compare in plain terms, along with how many tokens it actually keeps. Formal definitions are in Appendix~\ref{app:defs}. HuggingFace, vLLM and SGLang all apply temperature before truncation, and so do we unless we say otherwise. That ordering matters a great deal. With temperature first, going from temperature 1 to 2 grows the median top-$p$ set from 2 tokens to about 90,000, Top-H from 1 to 54, P-less from 1 to 21 and min-$p$ from 1 to 14, because each rule now draws its cutoff on probabilities that temperature has already flattened. Swap the order, i.e. truncate on the untempered probabilities and apply temperature afterwards, and every rule keeps exactly its temperature-1 set at any temperature (last column of Table~\ref{tab:glance}). Temperature then only moves probability around among tokens the rule already accepted. Section~\ref{sec:ablation} tests whether this reordering alone fixes the rules that break.
+Table~\ref{tab:glance} describes each rule we compare in plain terms, along with how many tokens it actually keeps. Formal definitions are in Appendix~\ref{app:defs}. HuggingFace, vLLM and SGLang all apply temperature before truncation, and so do we unless we say otherwise. That ordering matters a great deal. With temperature first, going from temperature 1 to 2 grows the median top-$p$ set from 2 tokens to about 90,000, Top-H from 1 to 54, P-less from 1 to 21 and min-$p$ from 1 to 14, because each rule now draws its cutoff on probabilities that temperature has already flattened. Swap the order, i.e. truncate on the untempered probabilities and apply temperature afterwards, and every rule keeps exactly its temperature-1 set at any temperature. Temperature then only moves probability around among tokens the rule already accepted. Section~\ref{sec:ablation} tests whether this reordering alone fixes the rules that break.
 
 \begin{table}[t]
 \centering
-\caption{The samplers we compare, what each one keeps, and how many tokens it actually keeps per decoding step (median over the first 2K tokens of the ten-model generations of Section~\ref{sec:r1}, full numbers in Table~\ref{tab:pool}). Read each row left to right. With temperature applied first, as HuggingFace, vLLM and SGLang do by default, top-$p$, Top-H, P-less and min-$p$ all grow between temperature 1 and 2, and top-$n\sigma$ is the only rule that stays at its temperature-1 size. In the last column temperature is applied after truncation, so the set is chosen on the untempered probabilities and every rule keeps its temperature-1 set by construction. Section~\ref{sec:ablation} shows that this reordering alone rescues Top-H, min-$p$ and P-less.}
+\caption{The samplers we compare, what each one keeps, and how many tokens it actually keeps per decoding step (median over the first 2K tokens of the ten-model generations of Section~\ref{sec:r1}, full numbers in Table~\ref{tab:pool}). Temperature is applied before truncation, as HuggingFace, vLLM and SGLang do by default. Compare the two columns of each row. Top-$p$, Top-H, P-less and min-$p$ all grow between temperature 1 and 2, and top-$n\sigma$ is the only rule that stays at its temperature-1 size.}
 \label{tab:glance}
 \small
 \setlength{\tabcolsep}{4pt}
-\begin{tabular}{l>{\raggedright\arraybackslash}p{5.6cm}ccc}
+\begin{tabular}{l>{\raggedright\arraybackslash}p{6.4cm}cc}
 \toprule
- & & \multicolumn{3}{c}{Median tokens kept per step} \\
-\cmidrule(lr){3-5}
- & & \multicolumn{2}{c}{temperature first (default)} & temperature last \\
-\cmidrule(lr){3-4}\cmidrule(lr){5-5}
-Sampler & Keeps the tokens that\ldots & temp.\ 1 & temp.\ 2 & temp.\ 2 \\
+ & & \multicolumn{2}{c}{Median tokens kept per step} \\
+\cmidrule(lr){3-4}
+Sampler & Keeps the tokens that\ldots & temp.\ 1 & temp.\ 2 \\
 \midrule
-Pure sampling & (all tokens) & all & all & all \\
-Top-$k$ 50 & are among the 50 most likely & 51 & 51 & 51 \\
-Top-$p$ 0.9 & together cover 90\% of the probability & 2 & $\approx$90{,}000 & 2 \\
-Top-H 0.4 & keep the set's entropy under 40\% of the full entropy & 1 & 54 & 1 \\
-Min-$p$ 0.1 & have at least 10\% of the top token's probability & 1 & 14 & 1 \\
-P-less & are at least as likely as two random draws are to match & 1 & 21 & 1 \\
-Top-$n\sigma$ 1 & have logits within one standard deviation of the top & 1 & \textbf{1} & 1 \\
+Pure sampling & (all tokens) & all & all \\
+Top-$k$ 50 & are among the 50 most likely & 51 & 51 \\
+Top-$p$ 0.9 & together cover 90\% of the probability & 2 & $\approx$90{,}000 \\
+Top-H 0.4 & keep the set's entropy under 40\% of the full entropy & 1 & 54 \\
+Min-$p$ 0.1 & have at least 10\% of the top token's probability & 1 & 14 \\
+P-less & are at least as likely as two random draws are to match & 1 & 21 \\
+Top-$n\sigma$ 1 & have logits within one standard deviation of the top & 1 & \textbf{1} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -287,7 +285,7 @@ Benchmarks run only at temperature 1 hide most of these differences, and nominal
 The sampler is a free and extremely effective control over long-context generation, and hardly anyone tunes it or even reports it. Across 29 models and every benchmark we tried, samplers whose candidate set stays small and stable lose little or nothing at high temperature, and samplers that admit the tail fall apart. Long-context generation is, to a large degree, a sampling problem once you turn up the heat.
 
 \begin{ack}
-\textcolor{red}{[TODO before upload: funding sources and competing interests for all authors. NeurIPS requires this section in the camera-ready version.]}
+This work was funded by Thoughtworks.
 \end{ack}
 
 %% ====================================================================
