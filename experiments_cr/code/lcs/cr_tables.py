@@ -10,7 +10,7 @@ from __future__ import annotations
 import glob, json, os, sys
 import numpy as np, pandas as pd
 
-H = os.path.expanduser("~/lcg-cr")
+H = os.environ.get("LCG_HOME", os.path.expanduser("~/lcg-cr"))
 
 
 def load(exp):

@@ -12,7 +12,7 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 from .cr_tables import load
 
-H = os.path.expanduser("~/lcg-cr")
+H = os.environ.get("LCG_HOME", os.path.expanduser("~/lcg-cr"))
 OUT = f"{H}/figs"
 INK, INK2, GRID = "#1f1f1e", "#62615d", "#e6e5e0"
 S = {  # key: (label, color, marker)
@@ -120,26 +120,38 @@ def fig_pool():
 
 
 # ---------------------------------------------------------------- 3. map (R5 redo)
+def _r5_quality():
+    """Mean judged window quality per sampler x T for the 8-model sweep (results/cr_r5.txt, 'mean window overall')."""
+    lines = open(f"{H}/results/cr_r5.txt").read().split("mean window overall", 1)[1].splitlines()
+    temps = [float(x) for x in lines[1].split()[1:]]
+    rows = {}
+    for ln in lines[3:]:
+        p = ln.split()
+        if len(p) != len(temps) + 1: break
+        rows[p[0]] = pd.Series([float(v) for v in p[1:]], index=temps)
+    return rows
+
+
 def fig_map():
-    met, win, _ = load("r5_hp"); K = ["model", "uid"]
-    met = met.join(win.groupby(K).j_overall.mean().rename("q"), on=K)
-    q = met.groupby(["sampler", "T"]).q.mean()
+    q = _r5_quality()
     fams = [("Top-$p$", "topp", "topp0.9"), ("Top-$k$", "topk", "topk50"), ("Top-H", "toph", "toph0.4"),
-            ("Min-$p$", "minp", "minp0.1"), ("Top-$n\\sigma$", "nsigma", "nsigma1")]
-    fig, axes = plt.subplots(1, 5, figsize=(7.0, 1.85), sharey=True)
+            ("P-less", "pless", "pless"), ("Min-$p$", "minp", "minp0.1"), ("Top-$n\\sigma$", "nsigma", "nsigma1")]
+    fig, axes = plt.subplots(1, 6, figsize=(7.0, 1.85), sharey=True)
     for ax, (title, pre, key) in zip(axes, fams):
-        names = sorted({s for s, _ in q.index if s.startswith(pre)}, key=lambda s: float(s[len(pre):]))
+        names = [s for s in q if s == pre] if pre == "pless" else sorted([s for s in q if s.startswith(pre)], key=lambda s: float(s[len(pre):]))
         base = mpl.colors.to_rgb(S[key][1])
         for i, s in enumerate(names):
-            t = (i + 1) / len(names)
-            col = tuple(1 - (1 - c) * (0.30 + 0.70 * t) for c in base)
-            g = q.loc[s]
+            tt = (i + 1) / len(names)
+            col = tuple(1 - (1 - c) * (0.30 + 0.70 * tt) for c in base)
+            g = q[s]
             ax.plot(g.index, g.values, color=col, lw=1.4, marker=S[key][2], ms=3, mec="white", mew=0.4, zorder=3)
-            ax.lines[-1].set_label(s[len(pre):])
-        tq = q.loc["temp"]; ax.plot(tq.index, tq.values, color="#9a9993", ls=":", lw=1, zorder=2)
-        sym = {"topp": "p", "topk": "k", "toph": "\\alpha", "minp": "p", "nsigma": "n"}[pre]
-        ax.text(0.0, 1.005, f"${sym}$ = " + ", ".join(n[len(pre):] for n in names),
-                transform=ax.transAxes, fontsize=5.8, color=INK2, va="bottom")
+        tq = q["temp"]; ax.plot(tq.index, tq.values, color="#9a9993", ls=":", lw=1, zorder=2)
+        if pre == "pless":
+            lab = "no hyperparameter"
+        else:
+            sym = {"topp": "p", "topk": "k", "toph": "\\alpha", "minp": "p", "nsigma": "n"}[pre]
+            lab = f"${sym}$ = " + ", ".join(n[len(pre):] for n in names)
+        ax.text(0.0, 1.005, lab, transform=ax.transAxes, fontsize=5.4, color=INK2, va="bottom")
         ax.set_title(title, color=S[key][1], pad=10); ax.set_xlim(0.6, 3.1); ax.set_xticks([1, 2, 3]); ax.set_xlabel("Temperature")
         ax.set_ylim(0.8, 5.2)
     axes[0].set_ylabel("Judged quality (1–10)")
@@ -177,27 +189,48 @@ def fig_tl():
 def fig_swe(which="main"):
     t = pd.DataFrame(json.load(open(f"{H}/results/cr_swe.json")))
     t = t[t.graded >= 0.9 * t.n]
-    cand = ([("r3a_swe", "qwen3.5-9b"), ("r3b_swelong", "qwen3.5-9b"), ("r7_swe", "qwen3.5-27b"), ("r7_swe", "qwen3.5-35b-a3b"),
-             ("r20_swe_new100", "qwen3.5-27b"), ("r20_swe_new100", "qwen3.5-35b-a3b")] if which == "main" else
-            [("r3c_swe", "gemma4-31b"), ("r21_swe_new100", "gemma4-31b"), ("r7_swe", "gemma4-e4b")])
-    panels = [(e, m) for e, m in cand if not t[(t.exp == e) & (t.model == m)].empty]
-    title = {("r3a_swe", "qwen3.5-9b"): "Qwen3.5-9B\n100 tasks, 250 steps", ("r3b_swelong", "qwen3.5-9b"): "Qwen3.5-9B\n50 tasks, 500 steps",
-             ("r7_swe", "qwen3.5-27b"): "Qwen3.5-27B\n50 tasks, 500 steps", ("r7_swe", "qwen3.5-35b-a3b"): "Qwen3.5-35B-A3B\n50 tasks, 500 steps",
-             ("r3c_swe", "gemma4-31b"): "Gemma-4-31B\n50 tasks, 250 steps", ("r7_swe", "gemma4-e4b"): "Gemma-4-E4B\n50 tasks, 500 steps",
-             ("r20_swe_new100", "qwen3.5-27b"): "Qwen3.5-27B\n100 new tasks", ("r20_swe_new100", "qwen3.5-35b-a3b"): "Qwen3.5-35B-A3B\n100 new tasks",
-             ("r21_swe_new100", "gemma4-31b"): "Gemma-4-31B\n100 new tasks"}
-    fig, axes = plt.subplots(1, len(panels), figsize=(7.0 if which == "main" else 4.2, 2.1), sharey=True, squeeze=False)
-    for ax, (e, m) in zip(axes[0], panels):
-        g = t[(t.exp == e) & (t.model == m)]
-        for k in ORDER:
-            r = g[g.sampler == k].sort_values("T")
-            if len(r): ax.plot(r["T"], 100 * r.resolved, color=S[k][1], marker=S[k][2], ms=4, mec="white", mew=0.5, lw=1.5, zorder=3)
-        ax.set_title(title[(e, m)], fontsize=6.8, loc="center"); ax.set_xlabel("Temperature")
-        ax.set_xticks([1.0, 1.5, 2.0]); ax.set_xlim(0.9, 2.1); ax.set_ylim(-3, 78)
-    axes[0][0].set_ylabel("SWE-bench Verified resolved (%)")
-    handles = [mpl.lines.Line2D([], [], color=S[k][1], marker=S[k][2], mec="white", lw=1.5, label=S[k][0]) for k in ORDER]
-    fig.legend(handles=handles, ncol=6, loc="lower center", bbox_to_anchor=(0.5, -0.12), fontsize=7, handlelength=1.6, columnspacing=1.1)
-    fig.subplots_adjust(wspace=0.15, bottom=0.27)
+    title = {("r3a_swe", "qwen3.5-9b"): "Qwen3.5-9B\n100 issues, 250 steps", ("r3b_swelong", "qwen3.5-9b"): "Qwen3.5-9B\n50 issues, 500 steps",
+             ("r7_swe", "qwen3.5-27b"): "Qwen3.5-27B\n50 issues, 500 steps", ("r7_swe", "qwen3.5-35b-a3b"): "Qwen3.5-35B-A3B\n50 issues, 500 steps",
+             ("r18_swe_new100", "qwen3.5-9b"): "Qwen3.5-9B\n100 fresh issues", ("r20_swe_new100", "qwen3.5-27b"): "Qwen3.5-27B\n100 fresh issues",
+             ("r20_swe_new100", "qwen3.5-35b-a3b"): "Qwen3.5-35B-A3B\n100 fresh issues",
+             ("r3c_swe", "gemma4-31b"): "Gemma-4-31B\n50 issues, 250 steps", ("r7_swe", "gemma4-e4b"): "Gemma-4-E4B\n50 issues, 500 steps",
+             ("r21_swe_new100", "gemma4-31b"): "Gemma-4-31B\n100 fresh issues"}
+    if which == "main":
+        rows = [[("r3a_swe", "qwen3.5-9b"), ("r3b_swelong", "qwen3.5-9b"), ("r7_swe", "qwen3.5-27b"), ("r7_swe", "qwen3.5-35b-a3b")],
+                [("r18_swe_new100", "qwen3.5-9b"), ("r20_swe_new100", "qwen3.5-27b"), ("r20_swe_new100", "qwen3.5-35b-a3b"), None]]
+        fig, axes = plt.subplots(2, 4, figsize=(7.0, 3.15), sharey=True, sharex=True)
+    else:
+        rows = [[("r3c_swe", "gemma4-31b"), ("r21_swe_new100", "gemma4-31b"), ("r7_swe", "gemma4-e4b")]]
+        fig, axes = plt.subplots(1, 3, figsize=(4.2, 2.1), sharey=True, squeeze=False)
+    for r_, row in enumerate(rows):
+        for c_, p in enumerate(row):
+            ax = axes[r_][c_]
+            if p is None:
+                ax.axis("off"); continue
+            g = t[(t.exp == p[0]) & (t.model == p[1])]
+            ran = [k for k in ORDER + ["temp"] if len(g[g.sampler == k])]
+            for k in ORDER + ["temp"]:
+                r = g[g.sampler == k].sort_values("T")
+                if len(r): ax.plot(r["T"], 100 * r.resolved, color=S[k][1], marker=S[k][2] or "o", ms=4 if S[k][2] else 2.5, mec="white", mew=0.5,
+                                   lw=1.5, ls=":" if k == "temp" else "-", zorder=3)
+            ax.set_title(title[p], fontsize=6.8, loc="center")
+            miss = [S[k][0] for k in ORDER + ["temp"] if k not in ran]
+            note = (["not run: " + ", ".join(miss)] if miss else []) + (["temperature 2 not run"] if which == "main" and g["T"].max() < 2 else [])
+            if note: ax.text(0.03, 0.04, "\n".join(note), transform=ax.transAxes, fontsize=5.0, color=INK2, va="bottom", linespacing=1.15)
+            if r_ == len(rows) - 1 or which == "main" and r_ == 0 and c_ == 3:
+                ax.set_xlabel("Temperature")
+            if which == "main": ax.set_xticks([1.0, 1.5, 2.0]); ax.set_xlim(0.9, 2.1)
+            else: ax.set_xticks([1.0, 1.5]); ax.set_xlim(0.85, 1.65)
+            ax.set_ylim(-3, 78); ax.xaxis.set_tick_params(labelbottom=True)
+        axes[r_][0].set_ylabel("Resolved (%)" if which == "main" else "SWE-bench Verified resolved (%)")
+    keys = ORDER + ["temp"]
+    handles = [mpl.lines.Line2D([], [], color=S[k][1], marker=S[k][2] or None, mec="white", lw=1.5, ls=":" if k == "temp" else "-", label=S[k][0]) for k in keys]
+    if which == "main":
+        axes[1][3].legend(handles=handles, loc="center", fontsize=7, frameon=False, handlelength=2.0, title="Sampler", title_fontsize=7)
+        fig.subplots_adjust(wspace=0.12, hspace=0.75)
+    else:
+        fig.legend(handles=handles, ncol=4, loc="lower center", bbox_to_anchor=(0.5, -0.2), fontsize=7, handlelength=1.6, columnspacing=1.1)
+        fig.subplots_adjust(wspace=0.15, bottom=0.27)
     save(fig, "fig_swe" if which == "main" else "fig_swe_gemma")
 
 

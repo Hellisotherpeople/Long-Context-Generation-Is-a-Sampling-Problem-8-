@@ -24,3 +24,9 @@ sampled token (plus a check that it lies inside the candidate set).
 - `lcs/score.py`, `lcs/evalppl.py`, `lcs/judge.py`, `lcs/humaneval.py` — scoring, evaluator NLL, LLM judge,
   human-evaluation kit.
 - `lcs/metrics.py`, `lcs/analyze.py`, `lcs/ana_*.py`, `lcs/figs.py` — metrics and figures.
+
+## Regenerating figures from the committed results
+`fig_teaser`, `fig_swe`, `fig_swe_gemma` and `fig_map` only need `experiments_cr/results/`:
+`cd experiments_cr/code && LCG_HOME=$PWD/.. python -c "from lcs import cr_figs as c; c.style(); c.fig_teaser(); c.fig_swe(); c.fig_swe('gemma'); c.fig_map()"`.
+The other figures read the raw run directories (`~/lcg-cr/runs`). `fig_predict` (in `figs_cr2.py`) now normalizes sampler tags on
+both sides of its merge. Before this fix, top-nσ with n = 1, 2, 3 was silently dropped (133 instead of 154 cells), so rerun it on the run host.

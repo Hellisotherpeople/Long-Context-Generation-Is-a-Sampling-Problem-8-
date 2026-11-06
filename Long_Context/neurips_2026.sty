@@ -53,19 +53,25 @@
 \newif\if@position\@positionfalse
 \DeclareOption{position}{
   \@positiontrue
-  \newcommand{\@trackname}{\@neuripsordinal\ Conference on Neural Information Processing Systems (NeurIPS \@neuripsyear) Position Paper Track.}
+  \newcommand{\@trackname}{\@neuripsordinal\ Conference on Neural Information Processing Systems (NeurIPS \@neuripsyear). Position Paper Track.}
 }
-\newif\if@dandb\@dandbfalse
-\DeclareOption{dandb}{
-  \@dandbtrue
-  \@anonymousfalse
-  \newcommand{\@trackname}{\@neuripsordinal\ Conference on Neural Information Processing Systems (NeurIPS \@neuripsyear) Track on Datasets and Benchmarks.}
+\newif\if@eandd\@eanddfalse
+\DeclareOption{eandd}{
+  \@eanddtrue
+\if@neuripsfinal\@anonymousfalse\else\if@preprint\@anonymousfalse\else\@anonymoustrue\fi\fi
+  \newcommand{\@trackname}{\@neuripsordinal\ Conference on Neural Information Processing Systems (NeurIPS \@neuripsyear). Track on Evaluations and Datasets.} 
 }
 \newif\if@creativeai\@creativeaifalse
 \DeclareOption{creativeai}{
   \@creativeaitrue
   \@anonymousfalse
-  \newcommand{\@trackname}{\@neuripsordinal\ Conference on Neural Information Processing Systems (NeurIPS \@neuripsyear) Creative AI Track.}
+  \newcommand{\@trackname}{\@neuripsordinal\ Conference on Neural Information Processing Systems (NeurIPS \@neuripsyear). Creative AI Track.}
+}
+\newif\if@education\@educationfalse
+\DeclareOption{education}{
+  \@educationtrue
+  \@anonymousfalse
+  \newcommand{\@trackname}{\@neuripsordinal\ Conference on Neural Information Processing Systems (NeurIPS \@neuripsyear). Education Track.}
 }
 
 % For anonymous or non-anonymous
@@ -79,11 +85,14 @@
 \DeclareOption{sglblindworkshop}{
   \@workshoptrue
   \@anonymousfalse
-  \newcommand{\@trackname}{\@neuripsordinal\ Conference on Neural Information Processing Systems (NeurIPS \@neuripsyear) Workshop: \@workshoptitle.}
+  \newcommand{\@trackname}{\@neuripsordinal\ Conference on Neural Information Processing Systems (NeurIPS \@neuripsyear). Workshop: \@workshoptitle.}
 }
 \DeclareOption{dblblindworkshop}{
   \@workshoptrue
-  \newcommand{\@trackname}{\@neuripsordinal\ Conference on Neural Information Processing Systems (NeurIPS \@neuripsyear) Workshop: \@workshoptitle.}
+  \newcommand{\@trackname}{\@neuripsordinal\ Conference on Neural Information Processing Systems (NeurIPS \@neuripsyear). Workshop: \@workshoptitle.}
+}
+\DeclareOption{nonanonymous}{
+  \@anonymousfalse
 }
 
 \ProcessOptions\relax
@@ -105,15 +114,6 @@
   \BODY
 }
 
-%% title, authors, abstract on page 1, full paper starts on page 2
-% % We patch the standard abstract environment
-% \RequirePackage{etoolbox}
-
-% % Redefine the end of the abstract environment
-% \AtEndEnvironment{abstract}{%
-%     \clearpage      % Force a new page
-%     \setcounter{page}{2} % Set the next page to 2
-% }
 
 % load natbib unless told otherwise
 \if@natbib

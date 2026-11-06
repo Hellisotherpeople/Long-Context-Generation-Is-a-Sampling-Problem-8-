@@ -404,8 +404,13 @@ def fig_predict():
         s = np.load(f)["stats"][:2048, 3]; s = s[np.isfinite(s)]
         if len(s): rows.append(dict(model=f.split("/")[-3], uid=mm.group(1), med=np.median(s), big=float(np.log10(s).mean())))
     st = pd.DataFrame(rows)
-    st["uid"] = st.uid.str.replace("nsigma1.0@", "nsigma1@").str.replace(r"nsigma(\d)\.0@", r"nsigma\1@", regex=True)
+    # Normalize sampler tags identically on both sides. The old code rewrote "nsigma1.0@" -> "nsigma1@" only in the
+    # stats table, so the inner merge silently dropped top-nsigma n=1,2,3 (19 of 22 settings survived, 133 cells).
+    _n = lambda u: u.str.replace(r"nsigma(\d)\.0@", r"nsigma\1@", regex=True)
+    st["uid"] = _n(st.uid); met = met.copy(); met["uid"] = _n(met.uid)
     d = met.merge(st, on=K, how="inner")
+    missing = sorted(set(met.sampler) - set(d.sampler))
+    if missing: print("WARNING fig_predict: settings without pool stats:", missing)
     c = d.groupby(["sampler", "T"]).agg(q=("q", "mean"), med=("med", "median"), big=("big", "mean"), n=("q", "size")).reset_index()
     c["gm"] = 10 ** c.big
     c = c[c.n >= 20]

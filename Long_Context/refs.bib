@@ -1,488 +1,504 @@
-% ============================================================
-% Bibliography for NeurIPS 2026 submission
-% "Long-Context Generation Is a Sampling Problem"
-% ============================================================
+% Every entry verified against the listed primary source on 2026-11-05.
 
-% ----- Standard sampling methods -----
-
-@article{ackley1985learning,
-  title={A Learning Algorithm for {Boltzmann} Machines},
-  author={Ackley, David H and Hinton, Geoffrey E and Sejnowski, Terrence J},
-  journal={Cognitive Science},
-  volume={9},
-  number={1},
-  pages={147--169},
-  year={1985}
-}
-
-@inproceedings{fan2018hierarchical,
-  title={Hierarchical Neural Story Generation},
-  author={Fan, Angela and Lewis, Mike and Dauphin, Yann},
-  booktitle={Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics},
-  pages={889--898},
-  year={2018}
-}
-
-@inproceedings{holtzman2020curious,
-  title={The Curious Case of Neural Text Degeneration},
-  author={Holtzman, Ari and Buys, Jan and Du, Li and Forbes, Maxwell and Choi, Yejin},
-  booktitle={International Conference on Learning Representations},
-  year={2020}
-}
-
-% ----- Adaptive sampling methods -----
-
-@article{nguyen2024minp,
-  title={Turning Up the Heat: Min-p Sampling for Creative and Coherent {LLM} Outputs},
-  author={Nguyen, Minh and Baker, Andrew and Neo, Clement and Roush, Allen and Kirsch, Andreas and Shwartz-Ziv, Ravid},
-  journal={arXiv preprint arXiv:2407.01082},
-  year={2024}
-}
-
-@article{meister2023locally,
-  title={Locally Typical Sampling},
-  author={Meister, Clara and Pimentel, Tiago and Wiher, Gian and Cotterell, Ryan},
-  journal={Transactions of the Association for Computational Linguistics},
-  volume={11},
-  pages={102--121},
-  year={2023},
-  publisher={MIT Press}
-}
-
-@inproceedings{hewitt2022truncation,
-  title={Truncation Sampling as Language Model Desmoothing},
-  author={Hewitt, John and Manning, Christopher D and Liang, Percy},
-  booktitle={Findings of the Association for Computational Linguistics: EMNLP 2022},
-  year={2022}
-}
-
-@inproceedings{basu2021mirostat,
-  title={Mirostat: A Neural Text Decoding Algorithm that Directly Controls Perplexity},
-  author={Basu, Sourya and Ramachandran, Govardana Sachitanandam and Keskar, Nitish Shirish and Varshney, Lav R},
-  booktitle={International Conference on Learning Representations},
-  year={2021}
-}
-
+% source: https://mlanthology.org/neurips/2025/potraghloo2025neurips-toph/
 @inproceedings{baghaei2025toph,
-  title={Top-{H} Decoding: Adapting the Creativity and Coherence with Bounded Entropy in Text Generation},
-  author={Baghaei Potraghloo, Erfan and Azizi, Seyedarmin and Kundu, Souvik and Pedram, Massoud},
-  booktitle={Advances in Neural Information Processing Systems},
-  year={2025}
+  title     = {{Top-H Decoding: Adapting the Creativity and Coherence with Bounded Entropy in Text Generation}},
+  author    = {Potraghloo, Erfan Baghaei and Azizi, Seyedarmin and Kundu, Souvik and Pedram, Massoud},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2025},
+  url       = {https://mlanthology.org/neurips/2025/potraghloo2025neurips-toph/}
 }
 
-@misc{weidmann2024xtc,
-  title={{XTC}: Exclude Top Choices Sampling for Language Models},
-  author={Weidmann, Philipp Emanuel},
+% source: https://aclanthology.org/2024.acl-long.172/
+@inproceedings{bai2024longbench,
+    title = "{L}ong{B}ench: A Bilingual, Multitask Benchmark for Long Context Understanding",
+    author = "Bai, Yushi  and
+      Lv, Xin  and
+      Zhang, Jiajie  and
+      Lyu, Hongchang  and
+      Tang, Jiankai  and
+      Huang, Zhidian  and
+      Du, Zhengxiao  and
+      Liu, Xiao  and
+      Zeng, Aohan  and
+      Hou, Lei  and
+      Dong, Yuxiao  and
+      Tang, Jie  and
+      Li, Juanzi",
+    editor = "Ku, Lun-Wei  and
+      Martins, Andre  and
+      Srikumar, Vivek",
+    booktitle = "Proceedings of the 62nd Annual Meeting of the {A}ssociation for {C}omputational {L}inguistics (Volume 1: Long Papers)",
+    month = aug,
+    year = "2024",
+    address = "Bangkok, Thailand",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2024.acl-long.172/",
+    doi = "10.18653/v1/2024.acl-long.172",
+    pages = "3119--3137",
+}
+
+% source: https://aclanthology.org/2025.acl-long.183/
+@inproceedings{bai2025longbenchv2,
+    title = "{L}ong{B}ench v2: Towards Deeper Understanding and Reasoning on Realistic Long-context Multitasks",
+    author = "Bai, Yushi  and
+      Tu, Shangqing  and
+      Zhang, Jiajie  and
+      Peng, Hao  and
+      Wang, Xiaozhi  and
+      Lv, Xin  and
+      Cao, Shulin  and
+      Xu, Jiazheng  and
+      Hou, Lei  and
+      Dong, Yuxiao  and
+      Tang, Jie  and
+      Li, Juanzi",
+    editor = "Che, Wanxiang  and
+      Nabende, Joyce  and
+      Shutova, Ekaterina  and
+      Pilehvar, Mohammad Taher",
+    booktitle = "Proceedings of the 63rd Annual Meeting of the {A}ssociation for {C}omputational {L}inguistics (Volume 1: Long Papers)",
+    month = jul,
+    year = "2025",
+    address = "Vienna, Austria",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2025.acl-long.183/",
+    doi = "10.18653/v1/2025.acl-long.183",
+    pages = "3639--3664",
+    ISBN = "979-8-89176-251-0",
+}
+
+% source: https://mlanthology.org/iclr/2025/bai2025iclr-longwriter/
+@inproceedings{bai2025longwriter,
+  title     = {{LongWriter: Unleashing 10,000+ Word Generation from Long Context LLMs}},
+  author    = {Bai, Yushi and Zhang, Jiajie and Lv, Xin and Zheng, Linzhi and Zhu, Siqi and Hou, Lei and Dong, Yuxiao and Tang, Jie and Li, Juanzi},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2025},
+  url       = {https://mlanthology.org/iclr/2025/bai2025iclr-longwriter/}
+}
+
+% source: https://mlanthology.org/neurips/2025/balunovic2025neurips-matharena/
+@inproceedings{balunovic2025matharena,
+  title     = {{MathArena: Evaluating LLMs on Uncontaminated Math Competitions}},
+  author    = {Balunovic, Mislav and Dekoninck, Jasper and Petrov, Ivo and Jovanović, Nikola and Vechev, Martin},
+  booktitle = {Advances in Neural Information Processing Systems (Datasets and Benchmarks Track)},
+  year      = {2025},
+  url       = {https://mlanthology.org/neurips/2025/balunovic2025neurips-matharena/}
+}
+
+% source: https://mlanthology.org/iclr/2021/basu2021iclr-mirostat/
+@inproceedings{basu2021mirostat,
+  title     = {{Mirostat: A Neural Text Decoding Algorithm That Directly Controls Perplexity}},
+  author    = {Basu, Sourya and Ramachandran, Govardana Sachitanandam and Keskar, Nitish Shirish and Varshney, Lav R.},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2021},
+  url       = {https://mlanthology.org/iclr/2021/basu2021iclr-mirostat/}
+}
+
+% source: https://arxiv.org/abs/2407.21783
+@article{dubey2024llama3,
+  title={The {Llama} 3 Herd of Models},
+  author={Grattafiori, Aaron and Dubey, Abhimanyu and Jauhri, Abhinav and Pandey, Abhinav and Kadian, Abhishek and Al-Dahle, Ahmad and Letman, Aiesha and Mathur, Akhil and Schelten, Alan and Vaughan, Alex and Yang, Amy and Fan, Angela and Goyal, Anirudh and Hartshorn, Anthony and Yang, Aobo and Mitra, Archi and Sravankumar, Archie and Korenev, Artem and Hinsvark, Arthur and Rao, Arun and Zhang, Aston and Rodriguez, Aurelien and Gregerson, Austen and Spataru, Ava and Roziere, Baptiste and Biron, Bethany and Tang, Binh and Chern, Bobbie and Caucheteux, Charlotte and Nayak, Chaya and Bi, Chloe and Marra, Chris and McConnell, Chris and Keller, Christian and Touret, Christophe and Wu, Chunyang and Wong, Corinne and Ferrer, Cristian Canton and Nikolaidis, Cyrus and Allonsius, Damien and Song, Daniel and Pintz, Danielle and Livshits, Danny and Wyatt, Danny and Esiobu, David and Choudhary, Dhruv and Mahajan, Dhruv and Garcia-Olano, Diego and Perino, Diego and Hupkes, Dieuwke and Lakomkin, Egor and AlBadawy, Ehab and Lobanova, Elina and Dinan, Emily and Smith, Eric Michael and Radenovic, Filip and Guzmán, Francisco and Zhang, Frank and Synnaeve, Gabriel and Lee, Gabrielle and Anderson, Georgia Lewis and Thattai, Govind and Nail, Graeme and Mialon, Gregoire and Pang, Guan and Cucurell, Guillem and Nguyen, Hailey and Korevaar, Hannah and Xu, Hu and Touvron, Hugo and Zarov, Iliyan and Ibarra, Imanol Arrieta and Kloumann, Isabel and Misra, Ishan and Evtimov, Ivan and Zhang, Jack and Copet, Jade and Lee, Jaewon and Geffert, Jan and Vranes, Jana and Park, Jason and Mahadeokar, Jay and Shah, Jeet and van der Linde, Jelmer and Billock, Jennifer and Hong, Jenny and Lee, Jenya and Fu, Jeremy and Chi, Jianfeng and Huang, Jianyu and Liu, Jiawen and Wang, Jie and Yu, Jiecao and Bitton, Joanna and Spisak, Joe and Park, Jongsoo and Rocca, Joseph and Johnstun, Joshua and Saxe, Joshua and Jia, Junteng and Alwala, Kalyan Vasuden and Prasad, Karthik and Upasani, Kartikeya and Plawiak, Kate and Li, Ke and Heafield, Kenneth and Stone, Kevin and El-Arini, Khalid and Iyer, Krithika and Malik, Kshitiz and Chiu, Kuenley and Bhalla, Kunal and Lakhotia, Kushal and Rantala-Yeary, Lauren and van der Maaten, Laurens and Chen, Lawrence and Tan, Liang and Jenkins, Liz and Martin, Louis and Madaan, Lovish and Malo, Lubo and Blecher, Lukas and Landzaat, Lukas and de Oliveira, Luke and Muzzi, Madeline and Pasupuleti, Mahesh and Singh, Mannat and Paluri, Manohar and Kardas, Marcin and Tsimpoukelli, Maria and Oldham, Mathew and Rita, Mathieu and Pavlova, Maya and Kambadur, Melanie and Lewis, Mike and Si, Min and Singh, Mitesh Kumar and Hassan, Mona and Goyal, Naman and Torabi, Narjes and Bashlykov, Nikolay and Bogoychev, Nikolay and Chatterji, Niladri and Zhang, Ning and Duchenne, Olivier and Çelebi, Onur and Alrassy, Patrick and Zhang, Pengchuan and Li, Pengwei and Vasic, Petar and Weng, Peter and Bhargava, Prajjwal and Dubal, Pratik and Krishnan, Praveen and Koura, Punit Singh and Xu, Puxin and He, Qing and Dong, Qingxiao and Srinivasan, Ragavan and Ganapathy, Raj and Calderer, Ramon and Cabral, Ricardo Silveira and Stojnic, Robert and Raileanu, Roberta and Maheswari, Rohan and Girdhar, Rohit and Patel, Rohit and Sauvestre, Romain and Polidoro, Ronnie and Sumbaly, Roshan and Taylor, Ross and Silva, Ruan and Hou, Rui and Wang, Rui and Hosseini, Saghar and Chennabasappa, Sahana and Singh, Sanjay and Bell, Sean and Kim, Seohyun Sonia and Edunov, Sergey and Nie, Shaoliang and Narang, Sharan and Raparthy, Sharath and Shen, Sheng and Wan, Shengye and Bhosale, Shruti and Zhang, Shun and Vandenhende, Simon and Batra, Soumya and Whitman, Spencer and Sootla, Sten and Collot, Stephane and Gururangan, Suchin and Borodinsky, Sydney and Herman, Tamar and Fowler, Tara and Sheasha, Tarek and Georgiou, Thomas and Scialom, Thomas and Speckbacher, Tobias and Mihaylov, Todor and Xiao, Tong and Karn, Ujjwal and Goswami, Vedanuj and Gupta, Vibhor and Ramanathan, Vignesh and Kerkez, Viktor and Gonguet, Vincent and Do, Virginie and Vogeti, Vish and Albiero, Vítor and Petrovic, Vladan and Chu, Weiwei and Xiong, Wenhan and Fu, Wenyin and Meers, Whitney and Martinet, Xavier and Wang, Xiaodong and Wang, Xiaofang and Tan, Xiaoqing Ellen and Xia, Xide and Xie, Xinfeng and Jia, Xuchao and Wang, Xuewei and Goldschlag, Yaelle and Gaur, Yashesh and Babaei, Yasmine and Wen, Yi and Song, Yiwen and Zhang, Yuchen and Li, Yue and Mao, Yuning and Coudert, Zacharie Delpierre and Yan, Zheng and Chen, Zhengxing and Papakipos, Zoe and Singh, Aaditya and Srivastava, Aayushi and Jain, Abha and Kelsey, Adam and Shajnfeld, Adam and Gangidi, Adithya and Victoria, Adolfo and Goldstand, Ahuva and Menon, Ajay and Sharma, Ajay and Boesenberg, Alex and Baevski, Alexei and Feinstein, Allie and Kallet, Amanda and Sangani, Amit and Teo, Amos and Yunus, Anam and Lupu, Andrei and Alvarado, Andres and Caples, Andrew and Gu, Andrew and Ho, Andrew and Poulton, Andrew and Ryan, Andrew and Ramchandani, Ankit and Dong, Annie and Franco, Annie and Goyal, Anuj and Saraf, Aparajita and Chowdhury, Arkabandhu and Gabriel, Ashley and Bharambe, Ashwin and Eisenman, Assaf and Yazdan, Azadeh and James, Beau and Maurer, Ben and Leonhardi, Benjamin and Huang, Bernie and Loyd, Beth and De Paola, Beto and Paranjape, Bhargavi and Liu, Bing and Wu, Bo and Ni, Boyu and Hancock, Braden and Wasti, Bram and Spence, Brandon and Stojkovic, Brani and Gamido, Brian and Montalvo, Britt and Parker, Carl and Burton, Carly and Mejia, Catalina and Liu, Ce and Wang, Changhan and Kim, Changkyu and Zhou, Chao and Hu, Chester and Chu, Ching-Hsiang and Cai, Chris and Tindal, Chris and Feichtenhofer, Christoph and Gao, Cynthia and Civin, Damon and Beaty, Dana and Kreymer, Daniel and Li, Daniel and Adkins, David and Xu, David and Testuggine, Davide and David, Delia and Parikh, Devi and Liskovich, Diana and Foss, Didem and Wang, Dingkang and Le, Duc and Holland, Dustin and Dowling, Edward and Jamil, Eissa and Montgomery, Elaine and Presani, Eleonora and Hahn, Emily and Wood, Emily and Le, Eric-Tuan and Brinkman, Erik and Arcaute, Esteban and Dunbar, Evan and Smothers, Evan and Sun, Fei and Kreuk, Felix and Tian, Feng and Kokkinos, Filippos and Ozgenel, Firat and Caggioni, Francesco and Kanayet, Frank and Seide, Frank and Florez, Gabriela Medina and Schwarz, Gabriella and Badeer, Gada and Swee, Georgia and Halpern, Gil and Herman, Grant and Sizov, Grigory and Guangyi and Zhang and Lakshminarayanan, Guna and Inan, Hakan and Shojanazeri, Hamid and Zou, Han and Wang, Hannah and Zha, Hanwen and Habeeb, Haroun and Rudolph, Harrison and Suk, Helen and Aspegren, Henry and Goldman, Hunter and Zhan, Hongyuan and Damlaj, Ibrahim and Molybog, Igor and Tufanov, Igor and Leontiadis, Ilias and Veliche, Irina-Elena and Gat, Itai and Weissman, Jake and Geboski, James and Kohli, James and Lam, Janice and Asher, Japhet and Gaya, Jean-Baptiste and Marcus, Jeff and Tang, Jeff and Chan, Jennifer and Zhen, Jenny and Reizenstein, Jeremy and Teboul, Jeremy and Zhong, Jessica and Jin, Jian and Yang, Jingyi and Cummings, Joe and Carvill, Jon and Shepard, Jon and McPhie, Jonathan and Torres, Jonathan and Ginsburg, Josh and Wang, Junjie and Wu, Kai and U, Kam Hou and Saxena, Karan and Khandelwal, Kartikay and Zand, Katayoun and Matosich, Kathy and Veeraraghavan, Kaushik and Michelena, Kelly and Li, Keqian and Jagadeesh, Kiran and Huang, Kun and Chawla, Kunal and Huang, Kyle and Chen, Lailin and Garg, Lakshya and A, Lavender and Silva, Leandro and Bell, Lee and Zhang, Lei and Guo, Liangpeng and Yu, Licheng and Moshkovich, Liron and Wehrstedt, Luca and Khabsa, Madian and Avalani, Manav and Bhatt, Manish and Mankus, Martynas and Hasson, Matan and Lennie, Matthew and Reso, Matthias and Groshev, Maxim and Naumov, Maxim and Lathi, Maya and Keneally, Meghan and Liu, Miao and Seltzer, Michael L. and Valko, Michal and Restrepo, Michelle and Patel, Mihir and Vyatskov, Mik and Samvelyan, Mikayel and Clark, Mike and Macey, Mike and Wang, Mike and Hermoso, Miquel Jubert and Metanat, Mo and Rastegari, Mohammad and Bansal, Munish and Santhanam, Nandhini and Parks, Natascha and White, Natasha and Bawa, Navyata and Singhal, Nayan and Egebo, Nick and Usunier, Nicolas and Mehta, Nikhil and Laptev, Nikolay Pavlovich and Dong, Ning and Cheng, Norman and Chernoguz, Oleg and Hart, Olivia and Salpekar, Omkar and Kalinli, Ozlem and Kent, Parkin and Parekh, Parth and Saab, Paul and Balaji, Pavan and Rittner, Pedro and Bontrager, Philip and Roux, Pierre and Dollar, Piotr and Zvyagina, Polina and Ratanchandani, Prashant and Yuvraj, Pritish and Liang, Qian and Alao, Rachad and Rodriguez, Rachel and Ayub, Rafi and Murthy, Raghotham and Nayani, Raghu and Mitra, Rahul and Parthasarathy, Rangaprabhu and Li, Raymond and Hogan, Rebekkah and Battey, Robin and Wang, Rocky and Howes, Russ and Rinott, Ruty and Mehta, Sachin and Siby, Sachin and Bondu, Sai Jayesh and Datta, Samyak and Chugh, Sara and Hunt, Sara and Dhillon, Sargun and Sidorov, Sasha and Pan, Satadru and Mahajan, Saurabh and Verma, Saurabh and Yamamoto, Seiji and Ramaswamy, Sharadh and Lindsay, Shaun and Lindsay, Shaun and Feng, Sheng and Lin, Shenghao and Zha, Shengxin Cindy and Patil, Shishir and Shankar, Shiva and Zhang, Shuqiang and Zhang, Shuqiang and Wang, Sinong and Agarwal, Sneha and Sajuyigbe, Soji and Chintala, Soumith and Max, Stephanie and Chen, Stephen and Kehoe, Steve and Satterfield, Steve and Govindaprasad, Sudarshan and Gupta, Sumit and Deng, Summer and Cho, Sungmin and Virk, Sunny and Subramanian, Suraj and Choudhury, Sy and Goldman, Sydney and Remez, Tal and Glaser, Tamar and Best, Tamara and Koehler, Thilo and Robinson, Thomas and Li, Tianhe and Zhang, Tianjun and Matthews, Tim and Chou, Timothy and Shaked, Tzook and Vontimitta, Varun and Ajayi, Victoria and Montanez, Victoria and Mohan, Vijai and Kumar, Vinay Satish and Mangla, Vishal and Ionescu, Vlad and Poenaru, Vlad and Mihailescu, Vlad Tiberiu and Ivanov, Vladimir and Li, Wei and Wang, Wenchen and Jiang, Wenwen and Bouaziz, Wes and Constable, Will and Tang, Xiaocheng and Wu, Xiaojian and Wang, Xiaolan and Wu, Xilun and Gao, Xinbo and Kleinman, Yaniv and Chen, Yanjun and Hu, Ye and Jia, Ye and Qi, Ye and Li, Yenda and Zhang, Yilin and Zhang, Ying and Adi, Yossi and Nam, Youngjin and Yu and Wang and Zhao, Yu and Hao, Yuchen and Qian, Yundi and Li, Yunlu and He, Yuzi and Rait, Zach and DeVito, Zachary and Rosnbrick, Zef and Wen, Zhaoduo and Yang, Zhenyu and Zhao, Zhiwei and Ma, Zhiyu},
+  journal={arXiv preprint arXiv:2407.21783},
   year={2024},
-  howpublished={\url{https://github.com/oobabooga/text-generation-webui/pull/6335}},
-  note={Software contribution}
+  url={https://arxiv.org/abs/2407.21783}
 }
 
-@misc{weidmann2024dry,
-  title={{DRY}: Don't Repeat Yourself Penalty for Text Generation},
-  author={Weidmann, Philipp Emanuel},
+% source: https://aclanthology.org/P18-1082/
+@inproceedings{fan2018hierarchical,
+    title = "Hierarchical Neural Story Generation",
+    author = "Fan, Angela  and
+      Lewis, Mike  and
+      Dauphin, Yann",
+    editor = "Gurevych, Iryna  and
+      Miyao, Yusuke",
+    booktitle = "Proceedings of the 56th Annual Meeting of the {A}ssociation for {C}omputational {L}inguistics (Volume 1: Long Papers)",
+    month = jul,
+    year = "2018",
+    address = "Melbourne, Australia",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/P18-1082/",
+    doi = "10.18653/v1/P18-1082",
+    pages = "889--898",
+}
+
+% source: https://mlanthology.org/aaai/2021/fu2021aaai-theoretical/
+@inproceedings{fu2021theoretical,
+  title     = {{A Theoretical Analysis of the Repetition Problem in Text Generation}},
+  author    = {Fu, Zihao and Lam, Wai and So, Anthony Man-Cho and Shi, Bei},
+  booktitle = {AAAI Conference on Artificial Intelligence},
+  year      = {2021},
+  pages     = {12848-12856},
+  doi       = {10.1609/AAAI.V35I14.17520},
+  url       = {https://mlanthology.org/aaai/2021/fu2021aaai-theoretical/}
+}
+
+% source: https://aclanthology.org/2022.findings-emnlp.249/
+@inproceedings{hewitt2022truncation,
+    title = "Truncation Sampling as Language Model Desmoothing",
+    author = "Hewitt, John  and
+      Manning, Christopher  and
+      Liang, Percy",
+    editor = "Goldberg, Yoav  and
+      Kozareva, Zornitsa  and
+      Zhang, Yue",
+    booktitle = "Findings of the {A}ssociation for {C}omputational {L}inguistics: {EMNLP} 2022",
+    month = dec,
+    year = "2022",
+    address = "Abu Dhabi, United Arab Emirates",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2022.findings-emnlp.249/",
+    doi = "10.18653/v1/2022.findings-emnlp.249",
+    pages = "3414--3427",
+}
+
+% source: https://mlanthology.org/iclr/2020/holtzman2020iclr-curious/
+@inproceedings{holtzman2020curious,
+  title     = {{The Curious Case of Neural Text Degeneration}},
+  author    = {Holtzman, Ari and Buys, Jan and Du, Li and Forbes, Maxwell and Choi, Yejin},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2020},
+  url       = {https://mlanthology.org/iclr/2020/holtzman2020iclr-curious/}
+}
+
+% source: https://openreview.net/forum?id=kIoBbc76Sy
+@inproceedings{hsieh2024ruler,
+  title={{RULER}: What's the Real Context Size of Your Long-Context Language Models?},
+  author={Cheng-Ping Hsieh and Simeng Sun and Samuel Kriman and Shantanu Acharya and Dima Rekesh and Fei Jia and Boris Ginsburg},
+  booktitle={First Conference on Language Modeling (COLM)},
   year={2024},
-  howpublished={\url{https://github.com/oobabooga/text-generation-webui/pull/5677}},
-  note={Software contribution}
+  url={https://openreview.net/forum?id=kIoBbc76Sy}
 }
 
-% ----- Moment-based / parameter-free sampling -----
-
-@article{tang2024topnsigma,
-  title={Top-$n\sigma$: Not All Logits Are You Need},
-  author={Tang, Chenxia and Liu, Jianchun and Xu, Hongli and Huang, Liusheng},
-  journal={arXiv preprint arXiv:2411.07641},
-  year={2024}
+% source: https://mlanthology.org/iclr/2025/jain2025iclr-livecodebench/
+@inproceedings{jain2025livecodebench,
+  title     = {{LiveCodeBench: Holistic and Contamination Free Evaluation of Large Language Models for Code}},
+  author    = {Jain, Naman and Han, King and Gu, Alex and Li, Wen-Ding and Yan, Fanjia and Zhang, Tianjun and Wang, Sida and Solar-Lezama, Armando and Sen, Koushik and Stoica, Ion},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2025},
+  url       = {https://mlanthology.org/iclr/2025/jain2025iclr-livecodebench/}
 }
 
-@article{tan2025pless,
-  title={$p$-less Sampling: A Robust Hyperparameter-Free Approach for {LLM} Decoding},
-  author={Tan, Runyan and Wu, Shuang and Howard, Phillip},
-  journal={arXiv preprint arXiv:2509.23234},
-  year={2025}
+% source: https://arxiv.org/abs/2310.06825
+@article{jiang2023mistral,
+  title={{Mistral} {7B}},
+  author={Jiang, Albert Q. and Sablayrolles, Alexandre and Mensch, Arthur and Bamford, Chris and Chaplot, Devendra Singh and Casas, Diego de las and Bressand, Florian and Lengyel, Gianna and Lample, Guillaume and Saulnier, Lucile and Lavaud, Lélio Renard and Lachaux, Marie-Anne and Stock, Pierre and Scao, Teven Le and Lavril, Thibaut and Wang, Thomas and Lacroix, Timothée and Sayed, William El},
+  journal={arXiv preprint arXiv:2310.06825},
+  year={2023},
+  url={https://arxiv.org/abs/2310.06825}
 }
 
-% ----- Contrastive / search-based decoding -----
-
-@inproceedings{su2022contrastive,
-  title={A Contrastive Framework for Neural Text Generation},
-  author={Su, Yixuan and Lan, Tian and Wang, Yan and Yogatama, Dani and Kong, Lingpeng and Collier, Nigel},
-  booktitle={Advances in Neural Information Processing Systems},
-  year={2022}
+% source: https://mlanthology.org/iclr/2024/jimenez2024iclr-swebench/
+@inproceedings{jimenez2024swebench,
+  title     = {{SWE-Bench: Can Language Models Resolve Real-World GitHub Issues?}},
+  author    = {Jimenez, Carlos E and Yang, John and Wettig, Alexander and Yao, Shunyu and Pei, Kexin and Press, Ofir and Narasimhan, Karthik R},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2024},
+  url       = {https://mlanthology.org/iclr/2024/jimenez2024iclr-swebench/}
 }
 
-@article{su2023contrastive,
-  title={Contrastive Search Is What You Need For Neural Text Generation},
-  author={Su, Yixuan and Collier, Nigel},
-  journal={Transactions on Machine Learning Research},
-  year={2023}
-}
-
-% ----- Degeneration, repetition, and penalties -----
-
-@inproceedings{welleck2020neural,
-  title={Neural Text Generation With Unlikelihood Training},
-  author={Welleck, Sean and Kulikov, Ilia and Roller, Stephen and Dinan, Emily and Cho, Kyunghyun and Weston, Jason},
-  booktitle={International Conference on Learning Representations},
-  year={2020}
-}
-
+% source: https://arxiv.org/abs/1909.05858
 @article{keskar2019ctrl,
   title={{CTRL}: A Conditional Transformer Language Model for Controllable Generation},
-  author={Keskar, Nitish Shirish and McCann, Bryan and Varshney, Lav R and Xiong, Caiming and Socher, Richard},
+  author={Keskar, Nitish Shirish and McCann, Bryan and Varshney, Lav R. and Xiong, Caiming and Socher, Richard},
   journal={arXiv preprint arXiv:1909.05858},
-  year={2019}
+  year={2019},
+  url={https://arxiv.org/abs/1909.05858}
 }
 
-@inproceedings{fu2021theoretical,
-  title={A Theoretical Analysis of the Repetition Problem in Text Generation},
-  author={Fu, Zihao and Lam, Wai and So, Anthony Man-Cho and Shi, Bei},
-  booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
-  volume={35},
-  pages={12848--12856},
-  year={2021}
+% source: https://arxiv.org/abs/2609.15476
+@article{larosa2026fragility,
+  title={Temperature Fragility and the Conditional Benefits of Truncation Sampling},
+  author={La Rosa, Francesco},
+  journal={arXiv preprint arXiv:2609.15476},
+  year={2026},
+  url={https://arxiv.org/abs/2609.15476}
 }
 
-% ----- Evaluation methods -----
-
-@inproceedings{zheng2023judging,
-  title={Judging {LLM}-as-a-Judge with {MT}-Bench and Chatbot Arena},
-  author={Zheng, Lianmin and Chiang, Wei-Lin and Sheng, Ying and Zhuang, Siyuan and Wu, Zhanghao and Zhuang, Yonghao and Lin, Zi and Li, Zhuohan and Li, Dacheng and Xing, Eric P and others},
-  booktitle={Advances in Neural Information Processing Systems},
-  year={2023}
-}
-
-@article{li2024generative,
-  title={Generative Judge for Evaluating Alignment},
-  author={Li, Junlong and Sun, Shichao and Yuan, Weizhe and Fan, Run-Ze and Zhao, Hai and Liu, Pengfei},
-  journal={arXiv preprint arXiv:2310.05470},
-  year={2024}
-}
-
-@inproceedings{bai2025longwriter,
-  title={{LongWriter}: Unleashing 10,000+ Word Generation from Long Context {LLM}s},
-  author={Bai, Yushi and Zhang, Jiajie and Lv, Xin and Zheng, Linzhi and Zhu, Siqi and Hou, Lei and Dong, Yuxiao and Tang, Jie and Li, Juanzi},
-  booktitle={International Conference on Learning Representations},
-  year={2025}
-}
-
-@article{bai2024longbench,
-  title={{LongBench}: A Bilingual, Multitask Benchmark for Long Context Understanding},
-  author={Bai, Yushi and Lv, Xin and Zhang, Jiajie and Lyu, Hongchang and Tang, Jie and Huang, Zhiyuan and Du, Zhifang and Liu, Xiao and Zeng, Aohan and Hou, Lei and others},
-  journal={arXiv preprint arXiv:2308.14508},
-  year={2024}
-}
-
-@article{hsieh2024ruler,
-  title={{RULER}: What's the Real Context Size of Your Long-Context Language Models?},
-  author={Hsieh, Cheng-Ping and Sun, Simeng and Kriman, Samuel and Acharya, Shantanu and Rekesh, Dima and Jia, Fei and Ginsburg, Boris},
-  journal={arXiv preprint arXiv:2404.06654},
-  year={2024}
-}
-
-@article{li2024distance,
-  title={How Far Can We Go with Practical Function-Level Program Repair?},
-  author={Li, Jiahong and Hasan, Ahmed and Hemmati, Hadi},
-  journal={arXiv preprint},
-  year={2024},
-  note={Distinct-n metric for diversity evaluation}
-}
-
-% ----- Infrastructure -----
-
-@inproceedings{zheng2024sglang,
-  title={{SGLang}: Efficient Execution of Structured Language Model Programs},
-  author={Zheng, Lianmin and Yin, Liangsheng and Xie, Zhiqiang and Huang, Jeff and Sun, Chuyue and Yu, Cody Hao and Cao, Shiyi and Kober, Christos and Leng, Cedric and Liang, Haotian and others},
-  booktitle={Advances in Neural Information Processing Systems},
-  year={2024}
-}
-
-@inproceedings{leviathan2023fast,
-  title={Fast Inference from Transformers via Speculative Decoding},
-  author={Leviathan, Yaniv and Kalman, Matan and Matias, Yossi},
-  booktitle={International Conference on Machine Learning},
-  year={2023}
-}
-
-@article{chen2023accelerating,
-  title={Accelerating Large Language Model Decoding with Speculative Sampling},
-  author={Chen, Charlie and Borgeaud, Sebastian and Irving, Geoffrey and Lespiau, Jean-Baptiste and Sifre, Laurent and Jumper, John},
-  journal={arXiv preprint arXiv:2302.01318},
-  year={2023}
-}
-
-% ----- Models -----
-
-@article{dubey2024llama3,
-title={The Llama 3 Herd of Models}, 
-      author={Aaron Grattafiori and Abhimanyu Dubey and Abhinav Jauhri and Abhinav Pandey and Abhishek Kadian and Ahmad Al-Dahle and Aiesha Letman and Akhil Mathur and Alan Schelten and Alex Vaughan and Amy Yang and Angela Fan and Anirudh Goyal and Anthony Hartshorn and Aobo Yang and Archi Mitra and Archie Sravankumar and Artem Korenev and Arthur Hinsvark and Arun Rao and Aston Zhang and Aurelien Rodriguez and Austen Gregerson and Ava Spataru and Baptiste Roziere and Bethany Biron and Binh Tang and Bobbie Chern and Charlotte Caucheteux and Chaya Nayak and Chloe Bi and Chris Marra and Chris McConnell and Christian Keller and Christophe Touret and Chunyang Wu and Corinne Wong and Cristian Canton Ferrer and Cyrus Nikolaidis and Damien Allonsius and Daniel Song and Danielle Pintz and Danny Livshits and Danny Wyatt and David Esiobu and Dhruv Choudhary and Dhruv Mahajan and Diego Garcia-Olano and Diego Perino and Dieuwke Hupkes and Egor Lakomkin and Ehab AlBadawy and Elina Lobanova and Emily Dinan and Eric Michael Smith and Filip Radenovic and Francisco Guzmán and Frank Zhang and Gabriel Synnaeve and Gabrielle Lee and Georgia Lewis Anderson and Govind Thattai and Graeme Nail and Gregoire Mialon and Guan Pang and Guillem Cucurell and Hailey Nguyen and Hannah Korevaar and Hu Xu and Hugo Touvron and Iliyan Zarov and Imanol Arrieta Ibarra and Isabel Kloumann and Ishan Misra and Ivan Evtimov and Jack Zhang and Jade Copet and Jaewon Lee and Jan Geffert and Jana Vranes and Jason Park and Jay Mahadeokar and Jeet Shah and Jelmer van der Linde and Jennifer Billock and Jenny Hong and Jenya Lee and Jeremy Fu and Jianfeng Chi and Jianyu Huang and Jiawen Liu and Jie Wang and Jiecao Yu and Joanna Bitton and Joe Spisak and Jongsoo Park and Joseph Rocca and Joshua Johnstun and Joshua Saxe and Junteng Jia and Kalyan Vasuden Alwala and Karthik Prasad and Kartikeya Upasani and Kate Plawiak and Ke Li and Kenneth Heafield and Kevin Stone and Khalid El-Arini and Krithika Iyer and Kshitiz Malik and Kuenley Chiu and Kunal Bhalla and Kushal Lakhotia and Lauren Rantala-Yeary and Laurens van der Maaten and Lawrence Chen and Liang Tan and Liz Jenkins and Louis Martin and Lovish Madaan and Lubo Malo and Lukas Blecher and Lukas Landzaat and Luke de Oliveira and Madeline Muzzi and Mahesh Pasupuleti and Mannat Singh and Manohar Paluri and Marcin Kardas and Maria Tsimpoukelli and Mathew Oldham and Mathieu Rita and Maya Pavlova and Melanie Kambadur and Mike Lewis and Min Si and Mitesh Kumar Singh and Mona Hassan and Naman Goyal and Narjes Torabi and Nikolay Bashlykov and Nikolay Bogoychev and Niladri Chatterji and Ning Zhang and Olivier Duchenne and Onur Çelebi and Patrick Alrassy and Pengchuan Zhang and Pengwei Li and Petar Vasic and Peter Weng and Prajjwal Bhargava and Pratik Dubal and Praveen Krishnan and Punit Singh Koura and Puxin Xu and Qing He and Qingxiao Dong and Ragavan Srinivasan and Raj Ganapathy and Ramon Calderer and Ricardo Silveira Cabral and Robert Stojnic and Roberta Raileanu and Rohan Maheswari and Rohit Girdhar and Rohit Patel and Romain Sauvestre and Ronnie Polidoro and Roshan Sumbaly and Ross Taylor and Ruan Silva and Rui Hou and Rui Wang and Saghar Hosseini and Sahana Chennabasappa and Sanjay Singh and Sean Bell and Seohyun Sonia Kim and Sergey Edunov and Shaoliang Nie and Sharan Narang and Sharath Raparthy and Sheng Shen and Shengye Wan and Shruti Bhosale and Shun Zhang and Simon Vandenhende and Soumya Batra and Spencer Whitman and Sten Sootla and Stephane Collot and Suchin Gururangan and Sydney Borodinsky and Tamar Herman and Tara Fowler and Tarek Sheasha and Thomas Georgiou and Thomas Scialom and Tobias Speckbacher and Todor Mihaylov and Tong Xiao and Ujjwal Karn and Vedanuj Goswami and Vibhor Gupta and Vignesh Ramanathan and Viktor Kerkez and Vincent Gonguet and Virginie Do and Vish Vogeti and Vítor Albiero and Vladan Petrovic and Weiwei Chu and Wenhan Xiong and Wenyin Fu and Whitney Meers and Xavier Martinet and Xiaodong Wang and Xiaofang Wang and Xiaoqing Ellen Tan and Xide Xia and Xinfeng Xie and Xuchao Jia and Xuewei Wang and Yaelle Goldschlag and Yashesh Gaur and Yasmine Babaei and Yi Wen and Yiwen Song and Yuchen Zhang and Yue Li and Yuning Mao and Zacharie Delpierre Coudert and Zheng Yan and Zhengxing Chen and Zoe Papakipos and Aaditya Singh and Aayushi Srivastava and Abha Jain and Adam Kelsey and Adam Shajnfeld and Adithya Gangidi and Adolfo Victoria and Ahuva Goldstand and Ajay Menon and Ajay Sharma and Alex Boesenberg and Alexei Baevski and Allie Feinstein and Amanda Kallet and Amit Sangani and Amos Teo and Anam Yunus and Andrei Lupu and Andres Alvarado and Andrew Caples and Andrew Gu and Andrew Ho and Andrew Poulton and Andrew Ryan and Ankit Ramchandani and Annie Dong and Annie Franco and Anuj Goyal and Aparajita Saraf and Arkabandhu Chowdhury and Ashley Gabriel and Ashwin Bharambe and Assaf Eisenman and Azadeh Yazdan and Beau James and Ben Maurer and Benjamin Leonhardi and Bernie Huang and Beth Loyd and Beto De Paola and Bhargavi Paranjape and Bing Liu and Bo Wu and Boyu Ni and Braden Hancock and Bram Wasti and Brandon Spence and Brani Stojkovic and Brian Gamido and Britt Montalvo and Carl Parker and Carly Burton and Catalina Mejia and Ce Liu and Changhan Wang and Changkyu Kim and Chao Zhou and Chester Hu and Ching-Hsiang Chu and Chris Cai and Chris Tindal and Christoph Feichtenhofer and Cynthia Gao and Damon Civin and Dana Beaty and Daniel Kreymer and Daniel Li and David Adkins and David Xu and Davide Testuggine and Delia David and Devi Parikh and Diana Liskovich and Didem Foss and Dingkang Wang and Duc Le and Dustin Holland and Edward Dowling and Eissa Jamil and Elaine Montgomery and Eleonora Presani and Emily Hahn and Emily Wood and Eric-Tuan Le and Erik Brinkman and Esteban Arcaute and Evan Dunbar and Evan Smothers and Fei Sun and Felix Kreuk and Feng Tian and Filippos Kokkinos and Firat Ozgenel and Francesco Caggioni and Frank Kanayet and Frank Seide and Gabriela Medina Florez and Gabriella Schwarz and Gada Badeer and Georgia Swee and Gil Halpern and Grant Herman and Grigory Sizov and Guangyi and Zhang and Guna Lakshminarayanan and Hakan Inan and Hamid Shojanazeri and Han Zou and Hannah Wang and Hanwen Zha and Haroun Habeeb and Harrison Rudolph and Helen Suk and Henry Aspegren and Hunter Goldman and Hongyuan Zhan and Ibrahim Damlaj and Igor Molybog and Igor Tufanov and Ilias Leontiadis and Irina-Elena Veliche and Itai Gat and Jake Weissman and James Geboski and James Kohli and Janice Lam and Japhet Asher and Jean-Baptiste Gaya and Jeff Marcus and Jeff Tang and Jennifer Chan and Jenny Zhen and Jeremy Reizenstein and Jeremy Teboul and Jessica Zhong and Jian Jin and Jingyi Yang and Joe Cummings and Jon Carvill and Jon Shepard and Jonathan McPhie and Jonathan Torres and Josh Ginsburg and Junjie Wang and Kai Wu and Kam Hou U and Karan Saxena and Kartikay Khandelwal and Katayoun Zand and Kathy Matosich and Kaushik Veeraraghavan and Kelly Michelena and Keqian Li and Kiran Jagadeesh and Kun Huang and Kunal Chawla and Kyle Huang and Lailin Chen and Lakshya Garg and Lavender A and Leandro Silva and Lee Bell and Lei Zhang and Liangpeng Guo and Licheng Yu and Liron Moshkovich and Luca Wehrstedt and Madian Khabsa and Manav Avalani and Manish Bhatt and Martynas Mankus and Matan Hasson and Matthew Lennie and Matthias Reso and Maxim Groshev and Maxim Naumov and Maya Lathi and Meghan Keneally and Miao Liu and Michael L. Seltzer and Michal Valko and Michelle Restrepo and Mihir Patel and Mik Vyatskov and Mikayel Samvelyan and Mike Clark and Mike Macey and Mike Wang and Miquel Jubert Hermoso and Mo Metanat and Mohammad Rastegari and Munish Bansal and Nandhini Santhanam and Natascha Parks and Natasha White and Navyata Bawa and Nayan Singhal and Nick Egebo and Nicolas Usunier and Nikhil Mehta and Nikolay Pavlovich Laptev and Ning Dong and Norman Cheng and Oleg Chernoguz and Olivia Hart and Omkar Salpekar and Ozlem Kalinli and Parkin Kent and Parth Parekh and Paul Saab and Pavan Balaji and Pedro Rittner and Philip Bontrager and Pierre Roux and Piotr Dollar and Polina Zvyagina and Prashant Ratanchandani and Pritish Yuvraj and Qian Liang and Rachad Alao and Rachel Rodriguez and Rafi Ayub and Raghotham Murthy and Raghu Nayani and Rahul Mitra and Rangaprabhu Parthasarathy and Raymond Li and Rebekkah Hogan and Robin Battey and Rocky Wang and Russ Howes and Ruty Rinott and Sachin Mehta and Sachin Siby and Sai Jayesh Bondu and Samyak Datta and Sara Chugh and Sara Hunt and Sargun Dhillon and Sasha Sidorov and Satadru Pan and Saurabh Mahajan and Saurabh Verma and Seiji Yamamoto and Sharadh Ramaswamy and Shaun Lindsay and Shaun Lindsay and Sheng Feng and Shenghao Lin and Shengxin Cindy Zha and Shishir Patil and Shiva Shankar and Shuqiang Zhang and Shuqiang Zhang and Sinong Wang and Sneha Agarwal and Soji Sajuyigbe and Soumith Chintala and Stephanie Max and Stephen Chen and Steve Kehoe and Steve Satterfield and Sudarshan Govindaprasad and Sumit Gupta and Summer Deng and Sungmin Cho and Sunny Virk and Suraj Subramanian and Sy Choudhury and Sydney Goldman and Tal Remez and Tamar Glaser and Tamara Best and Thilo Koehler and Thomas Robinson and Tianhe Li and Tianjun Zhang and Tim Matthews and Timothy Chou and Tzook Shaked and Varun Vontimitta and Victoria Ajayi and Victoria Montanez and Vijai Mohan and Vinay Satish Kumar and Vishal Mangla and Vlad Ionescu and Vlad Poenaru and Vlad Tiberiu Mihailescu and Vladimir Ivanov and Wei Li and Wenchen Wang and Wenwen Jiang and Wes Bouaziz and Will Constable and Xiaocheng Tang and Xiaojian Wu and Xiaolan Wang and Xilun Wu and Xinbo Gao and Yaniv Kleinman and Yanjun Chen and Ye Hu and Ye Jia and Ye Qi and Yenda Li and Yilin Zhang and Ying Zhang and Yossi Adi and Youngjin Nam and Yu and Wang and Yu Zhao and Yuchen Hao and Yundi Qian and Yunlu Li and Yuzi He and Zach Rait and Zachary DeVito and Zef Rosnbrick and Zhaoduo Wen and Zhenyu Yang and Zhiwei Zhao and Zhiyu Ma},
-      year={2024},
-      eprint={2407.21783},
-      archivePrefix={arXiv},
-      primaryClass={cs.AI},
-      url={https://arxiv.org/abs/2407.21783}, 
-
-}
-
-@article{yang2024qwen2,
-  title={{Qwen2} Technical Report},
-  author={Yang, An and Yang, Baosong and Hui, Binyuan and Zheng, Bo and Yu, Bowen and Zhou, Chang and Li, Chengpeng and Li, Chengyuan and Liu, Dayiheng and Huang, Fei and others},
-  journal={arXiv preprint arXiv:2407.10671},
-  year={2024}
-}
-
-@article{jiang2023mistral,
-  title={Mistral 7{B}},
-  author={Jiang, Albert Q and Sablayrolles, Alexandre and Mensch, Arthur and Bamford, Chris and Chaplot, Devendra Singh and de las Casas, Diego and Bressand, Florian and Lengyel, Gianna and Lample, Guillaume and Saulnier, Lucile and others},
-  journal={arXiv preprint arXiv:2310.06825},
-  year={2023}
-}
-
-% ----- Foundations -----
-
-@inproceedings{vaswani2017attention,
-  title={Attention Is All You Need},
-  author={Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N and Kaiser, {\L}ukasz and Polosukhin, Illia},
-  booktitle={Advances in Neural Information Processing Systems},
-  year={2017}
-}
-
-@article{radford2019language,
-  title={Language Models Are Unsupervised Multitask Learners},
-  author={Radford, Alec and Wu, Jeffrey and Child, Rewon and Luen, David and Amodei, Dario and Sutskever, Ilya},
-  journal={OpenAI blog},
-  year={2019}
-}
-
-@inproceedings{brown2020language,
-  title={Language Models Are Few-Shot Learners},
-  author={Brown, Tom and Mann, Benjamin and Ryder, Nick and Subbiah, Melanie and Kaplan, Jared D and Dhariwal, Prafulla and Neelakantan, Arvind and Shyam, Pranav and Sastry, Girish and Askell, Amanda and others},
-  booktitle={Advances in Neural Information Processing Systems},
-  year={2020}
-}
-
-@article{kaplan2020scaling,
-  title={Scaling Laws for Neural Language Models},
-  author={Kaplan, Jared and McCandlish, Sam and Henighan, Tom and Brown, Tom B and Chess, Benjamin and Child, Rewon and Gray, Scott and Radford, Alec and Wu, Jeffrey and Amodei, Dario},
-  journal={arXiv preprint arXiv:2001.08361},
-  year={2020}
-}
-
-% ----- Quantization -----
-
-@article{frantar2023gptq,
-  title={{GPTQ}: Accurate Post-Training Quantization for Generative Pre-Trained Transformers},
-  author={Frantar, Elias and Ashkboos, Saleh and Hoefler, Torsten and Alistarh, Dan},
-  journal={arXiv preprint arXiv:2210.17323},
-  year={2023}
-}
-
-@article{lin2024awq,
-  title={{AWQ}: Activation-Aware Weight Quantization for {LLM} Compression and Acceleration},
-  author={Lin, Ji and Tang, Jiaming and Tang, Haotian and Yang, Shang and Chen, Wei-Ming and Wang, Wei-Chen and Xiao, Guangxuan and Dang, Xingyu and Gan, Chuang and Han, Song},
-  journal={Machine Learning and Systems},
-  year={2024}
-}
-
-% ----- Long-context modeling -----
-
-@article{su2024roformer,
-      title={RoFormer: Enhanced Transformer with Rotary Position Embedding}, 
-      author={Jianlin Su and Yu Lu and Shengfeng Pan and Ahmed Murtadha and Bo Wen and Yunfeng Liu},
-      year={2023},
-      eprint={2104.09864},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2104.09864}, 
-}
-
-@article{press2022train,
-  title={Train Short, Test Long: Attention with Linear Biases Enables Input Length Generalization},
-  author={Press, Ofir and Smith, Noah A and Lewis, Mike},
-  journal={arXiv preprint arXiv:2108.12409},
-  year={2022}
-}
-
-@article{chen2023extending,
-  title={Extending Context Window of Large Language Models via Positional Interpolation},
-  author={Chen, Shouyuan and Wong, Sherman and Chen, Liangjian and Tian, Yuandong},
-  journal={arXiv preprint arXiv:2306.15595},
-  year={2023}
-}
-
-% ----- Diversity metrics -----
-
+% source: https://aclanthology.org/N16-1014/
 @inproceedings{li2016diversity,
-  title={A Diversity-Promoting Objective Function for Neural Conversation Models},
-  author={Li, Jiwei and Galley, Michel and Brockett, Chris and Gao, Jianfeng and Dolan, Bill},
-  booktitle={Proceedings of the 2016 Conference of the North American Chapter of the Association for Computational Linguistics},
-  pages={110--119},
-  year={2016}
+    title = "A Diversity-Promoting Objective Function for Neural Conversation Models",
+    author = "Li, Jiwei  and
+      Galley, Michel  and
+      Brockett, Chris  and
+      Gao, Jianfeng  and
+      Dolan, Bill",
+    editor = "Knight, Kevin  and
+      Nenkova, Ani  and
+      Rambow, Owen",
+    booktitle = "Proceedings of the 2016 Conference of the {N}orth {A}merican Chapter of the {A}ssociation for {C}omputational {L}inguistics: Human Language Technologies",
+    month = jun,
+    year = "2016",
+    address = "San Diego, California",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/N16-1014/",
+    doi = "10.18653/v1/N16-1014",
+    pages = "110--119"
 }
 
-@inproceedings{zhu2018texygen,
-  title={Texygen: A Benchmarking Platform for Text Generation Models},
-  author={Zhu, Yaoming and Lu, Sidi and Zheng, Lei and Guo, Jiaxian and Zhang, Weinan and Wang, Jun and Yu, Yong},
-  booktitle={The 41st International ACM SIGIR Conference on Research and Development in Information Retrieval},
-  pages={1097--1100},
-  year={2018}
+% source: https://mlanthology.org/iclr/2024/li2024iclr-generative/
+@inproceedings{li2024generative,
+  title     = {{Generative Judge for Evaluating Alignment}},
+  author    = {Li, Junlong and Sun, Shichao and Yuan, Weizhe and Fan, Run-Ze and Zhao, Hai and Liu, Pengfei},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2024},
+  url       = {https://mlanthology.org/iclr/2024/li2024iclr-generative/}
 }
 
-% ----- Additional related work -----
-
-@inproceedings{ippolito2019comparison,
-  title={Automatic Detection of Generated Text Is Easiest When Humans Are Fooled},
-  author={Ippolito, Daphne and Duckworth, Daniel and Callison-Burch, Chris and Eck, Douglas},
-  booktitle={Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics},
-  pages={1808--1822},
-  year={2020}
+% source: https://mlanthology.org/iclr/2024/lightman2024iclr-let/
+@inproceedings{lightman2024verify,
+  title     = {{Let's Verify Step by Step}},
+  author    = {Lightman, Hunter and Kosaraju, Vineet and Burda, Yuri and Edwards, Harrison and Baker, Bowen and Lee, Teddy and Leike, Jan and Schulman, John and Sutskever, Ilya and Cobbe, Karl},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2024},
+  url       = {https://mlanthology.org/iclr/2024/lightman2024iclr-let/}
 }
 
-@article{pillutla2021mauve,
-  title={{MAUVE}: Measuring the Gap Between Neural Text and Human Text using Divergence Frontiers},
-  author={Pillutla, Krishna and Swayamdipta, Swabha and Zellers, Rowan and Thickstun, John and Welleck, Sean and Choi, Yejin and Harchaoui, Zaid},
-  journal={Advances in Neural Information Processing Systems},
-  year={2021}
+% source: https://aclanthology.org/2023.tacl-1.7/
+@article{meister2023locally,
+    title = "Locally Typical Sampling",
+    author = "Meister, Clara  and
+      Pimentel, Tiago  and
+      Wiher, Gian  and
+      Cotterell, Ryan",
+    journal = "Transactions of the Association for Computational Linguistics",
+    volume = "11",
+    year = "2023",
+    address = "Cambridge, MA",
+    publisher = "MIT Press",
+    url = "https://aclanthology.org/2023.tacl-1.7/",
+    doi = "10.1162/tacl_a_00536",
+    pages = "102--121",
 }
 
-@article{zhang2024longcite,
-  title={{LongCite}: Enabling {LLM}s to Generate Fine-grained Citations in Long-context {QA}},
-  author={Zhang, Jiajie and Bai, Yushi and Lv, Xin and Gu, Wanjun and Liu, Danqing and Zou, Minhao and Cao, Shulin and Hou, Lei and Dong, Yuxiao and Tang, Jie and Li, Juanzi},
-  journal={arXiv preprint arXiv:2409.02897},
-  year={2024}
-}
-
-@article{shaham2023zeroscrolls,
-  title={{ZeroSCROLLS}: A Zero-Shot Benchmark for Long Text Understanding},
-  author={Shaham, Uri and Ivgi, Maor and Efrat, Avi and Berant, Jonathan and Levy, Omer},
-  journal={Findings of EMNLP},
-  year={2023}
-}
-
-@inproceedings{xiong2024effective,
-  title={Effective Long-Context Scaling of Foundation Models},
-  author={Xiong, Wenhan and Liu, Jingyu and Molybog, Igor and Zhang, Hejia and Bhargava, Prajjwal and Hou, Rui and Martin, Louis and Rungta, Rashi and Sankararaman, Karthik Abinav and Oguz, Barlas and others},
-  booktitle={Proceedings of the 2024 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 1: Long Papers)},
-  year={2024}
-}
-
-@inproceedings{fu2024data,
-  title={Data Engineering for Scaling Language Models to 128{K} Context},
-  author={Fu, Yao and Panda, Rameswar and Niu, Xinyao and Yue, Xiang and Hajishirzi, Hannaneh and Kim, Yoon and Peng, Hao},
-  booktitle={Proceedings of the 41st International Conference on Machine Learning (ICML)},
-  year={2024}
-}
-
-@article{zhou2024transformers,
-  title={Transformers Can Achieve Length Generalization But Not Robustly},
-  author={Zhou, Yongchao and Alon, Uri and Chen, Xinyun and Wang, Xuezhi and Agarwal, Rishabh and Zhou, Denny},
-  journal={arXiv preprint arXiv:2402.09371},
-  year={2024}
-}
-
-@article{huang2024formal,
-  title={A Formal Framework for Understanding Length Generalization in Transformers},
-  author={Huang, Xinting and Yang, Andy and Bhattamishra, Satwik and Sarrof, Yash and Krebs, Andreas and Zhou, Hattie and Nakkiran, Preetum and Hahn, Michael},
-  journal={arXiv preprint arXiv:2410.02140},
-  year={2024}
-}
-
-@inproceedings{jimenez2024swebench,
-  title={{SWE}-bench: Can Language Models Resolve Real-World {GitHub} Issues?},
-  author={Jimenez, Carlos E. and Yang, John and Wettig, Alexander and Yao, Shunyu and Pei, Kexin and Press, Ofir and Narasimhan, Karthik},
-  booktitle={International Conference on Learning Representations},
-  year={2024}
-}
-
-@inproceedings{jain2025livecodebench,
-  title={{LiveCodeBench}: Holistic and Contamination Free Evaluation of Large Language Models for Code},
-  author={Jain, Naman and Han, King and Gu, Alex and Li, Wen-Ding and Yan, Fanjia and Zhang, Tianjun and Wang, Sida and Solar-Lezama, Armando and Sen, Koushik and Stoica, Ion},
-  booktitle={International Conference on Learning Representations},
-  year={2025}
-}
-
-@article{openai2025gptoss,
-  title={gpt-oss-120b \& gpt-oss-20b Model Card},
-  author={{OpenAI}},
-  journal={arXiv preprint arXiv:2508.10925},
-  year={2025}
-}
-
-@inproceedings{yang2024sweagent,
-  title={{SWE}-agent: Agent-Computer Interfaces Enable Automated Software Engineering},
-  author={Yang, John and Jimenez, Carlos E. and Wettig, Alexander and Lieret, Kilian and Yao, Shunyu and Narasimhan, Karthik and Press, Ofir},
-  booktitle={Advances in Neural Information Processing Systems},
-  year={2024}
-}
-
+% source: https://github.com/SWE-agent/mini-swe-agent/releases/tag/v2.4.6 (released 2026-07-23)
 @misc{minisweagent,
   title={mini-swe-agent},
   author={{SWE-agent team}},
   howpublished={\url{https://github.com/SWE-agent/mini-swe-agent}},
   note={Version 2.4.6},
-  year={2025}
-}
-
-@misc{larosa2026fragility,
-  title={Temperature Fragility and the Conditional Benefits of Truncation Sampling},
-  author={La Rosa, Francesco},
-  howpublished={arXiv preprint arXiv:2609.15476},
   year={2026}
 }
 
+% source: https://openreview.net/forum?id=FBkpCyujtS (ICLR 2025 Oral) + https://arxiv.org/abs/2407.01082
+@inproceedings{nguyen2024minp,
+  title={Turning Up the Heat: Min-p Sampling for Creative and Coherent {LLM} Outputs},
+  author={Nguyen, Minh Nhat and Baker, Andrew and Neo, Clement and Roush, Allen and Kirsch, Andreas and Shwartz-Ziv, Ravid},
+  booktitle={The Thirteenth International Conference on Learning Representations (ICLR)},
+  year={2025},
+  url={https://openreview.net/forum?id=FBkpCyujtS}
+}
+
+% source: https://arxiv.org/abs/2508.10925
+@article{openai2025gptoss,
+  title={gpt-oss-120b \& gpt-oss-20b Model Card},
+  author={{OpenAI}},
+  journal={arXiv preprint arXiv:2508.10925},
+  year={2025},
+  url={https://arxiv.org/abs/2508.10925}
+}
+
+% source: https://mlanthology.org/iclr/2020/rae2020iclr-compressive/
+@inproceedings{rae2019compressive,
+  title     = {{Compressive Transformers for Long-Range Sequence Modelling}},
+  author    = {Rae, Jack W. and Potapenko, Anna and Jayakumar, Siddhant M. and Lillicrap, Timothy P.},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2020},
+  url       = {https://mlanthology.org/iclr/2020/rae2020iclr-compressive/}
+}
+
+% source: https://aclanthology.org/2023.findings-emnlp.536/
+@inproceedings{shaham2023zeroscrolls,
+    title = "{Z}ero{SCROLLS}: A Zero-Shot Benchmark for Long Text Understanding",
+    author = "Shaham, Uri  and
+      Ivgi, Maor  and
+      Efrat, Avia  and
+      Berant, Jonathan  and
+      Levy, Omer",
+    editor = "Bouamor, Houda  and
+      Pino, Juan  and
+      Bali, Kalika",
+    booktitle = "Findings of the {A}ssociation for {C}omputational {L}inguistics: {EMNLP} 2023",
+    month = dec,
+    year = "2023",
+    address = "Singapore",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2023.findings-emnlp.536/",
+    doi = "10.18653/v1/2023.findings-emnlp.536",
+    pages = "7977--7989",
+}
+
+% source: https://mlanthology.org/neurips/2022/su2022neurips-contrastive/
+@inproceedings{su2022contrastive,
+  title     = {{A Contrastive Framework for Neural Text Generation}},
+  author    = {Su, Yixuan and Lan, Tian and Wang, Yan and Yogatama, Dani and Kong, Lingpeng and Collier, Nigel},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2022},
+  url       = {https://mlanthology.org/neurips/2022/su2022neurips-contrastive/}
+}
+
+% source: https://mlanthology.org/tmlr/2023/su2023tmlr-contrastive/
+@article{su2023contrastive,
+  title     = {{Contrastive Search Is What You Need for Neural Text Generation}},
+  author    = {Su, Yixuan and Collier, Nigel},
+  journal   = {Transactions on Machine Learning Research},
+  year      = {2023},
+  url       = {https://mlanthology.org/tmlr/2023/su2023tmlr-contrastive/}
+}
+
+% source: https://mlanthology.org/iclr/2026/tan2026iclr-pless/
+@inproceedings{tan2025pless,
+  title     = {{P-Less Sampling: A Robust Hyperparameter-Free Approach for LLM Decoding}},
+  author    = {Tan, Runyan and Wu, Shuang and Howard, Phillip},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2026},
+  url       = {https://mlanthology.org/iclr/2026/tan2026iclr-pless/}
+}
+
+% source: https://aclanthology.org/2025.acl-long.528/
+@inproceedings{tang2024topnsigma,
+    title = "Top-$n\sigma$: Eliminating Noise in Logit Space for Robust Token Sampling of {LLM}",
+    author = "Tang, Chenxia  and
+      Liu, Jianchun  and
+      Xu, Hongli  and
+      Huang, Liusheng",
+    editor = "Che, Wanxiang  and
+      Nabende, Joyce  and
+      Shutova, Ekaterina  and
+      Pilehvar, Mohammad Taher",
+    booktitle = "Proceedings of the 63rd Annual Meeting of the {A}ssociation for {C}omputational {L}inguistics (Volume 1: Long Papers)",
+    month = jul,
+    year = "2025",
+    address = "Vienna, Austria",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2025.acl-long.528/",
+    doi = "10.18653/v1/2025.acl-long.528",
+    pages = "10758--10774",
+    ISBN = "979-8-89176-251-0",
+}
+
+% source: https://github.com/oobabooga/text-generation-webui/pull/5677
+@misc{weidmann2024dry,
+  title={{DRY}: A modern repetition penalty that reliably prevents looping},
+  author={Weidmann, Philipp Emanuel},
+  year={2024},
+  howpublished={\url{https://github.com/oobabooga/text-generation-webui/pull/5677}},
+  note={text-generation-webui pull request \#5677}
+}
+
+% source: https://github.com/oobabooga/text-generation-webui/pull/6335
+@misc{weidmann2024xtc,
+  title={Exclude Top Choices ({XTC}): A sampler that boosts creativity, breaks writing clich\'{e}s, and inhibits non-verbatim repetition},
+  author={Weidmann, Philipp Emanuel},
+  year={2024},
+  howpublished={\url{https://github.com/oobabooga/text-generation-webui/pull/6335}},
+  note={text-generation-webui pull request \#6335}
+}
+
+% source: https://mlanthology.org/iclr/2020/welleck2020iclr-neural/
+@inproceedings{welleck2020neural,
+  title     = {{Neural Text Generation with Unlikelihood Training}},
+  author    = {Welleck, Sean and Kulikov, Ilia and Roller, Stephen and Dinan, Emily and Cho, Kyunghyun and Weston, Jason},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2020},
+  url       = {https://mlanthology.org/iclr/2020/welleck2020iclr-neural/}
+}
+
+% source: https://mlanthology.org/neurips/2025/wu2025neurips-writingbench/
 @inproceedings{wu2025writingbench,
-  title={{WritingBench}: A Comprehensive Benchmark for Generative Writing},
-  author={Wu, Yuning and Mei, Jiahao and Yan, Ming and Li, Chenliang and Lai, Shaopeng and Ren, Yuran and Wang, Zijia and Zhang, Ji and Wu, Mengyue and Jin, Qin and Huang, Fei},
-  booktitle={Advances in Neural Information Processing Systems, Datasets and Benchmarks Track},
-  year={2025}
+  title     = {{WritingBench: A Comprehensive Benchmark for Generative Writing}},
+  author    = {Wu, Yuning and Mei, Jiahao and Yan, Ming and Li, Chenliang and Lai, Shaopeng and Ren, Yuran and Wang, Zijia and Zhang, Ji and Wu, Mengyue and Jin, Qin and Huang, Fei},
+  booktitle = {Advances in Neural Information Processing Systems (Datasets and Benchmarks Track)},
+  year      = {2025},
+  url       = {https://mlanthology.org/neurips/2025/wu2025neurips-writingbench/}
 }
 
+% source: https://mlanthology.org/iclr/2026/wu2026iclr-longwriterzero/
 @inproceedings{wu2026longwriterzero,
-  title={{LongWriter-Zero}: Mastering Ultra-Long Text Generation via Reinforcement Learning},
-  author={Wu, Yuhao and Bai, Yushi and Hu, Zhiqiang and Lee, Roy Ka-Wei and Li, Juanzi},
-  booktitle={International Conference on Learning Representations},
-  year={2026}
+  title     = {{LongWriter-Zero: Mastering Ultra-Long Text Generation via Reinforcement Learning}},
+  author    = {Wu, Yuhao and Bai, Yushi and Hu, Zhiqiang and Lee, Roy Ka-Wei and Li, Juanzi},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2026},
+  url       = {https://mlanthology.org/iclr/2026/wu2026iclr-longwriterzero/}
 }
 
-@article{rae2019compressive,
-  title={Compressive Transformers for Long-Range Sequence Modelling},
-  author={Rae, Jack W. and Potapenko, Anna and Jayakumar, Siddhant M. and Lillicrap, Timothy P.},
-  journal={arXiv preprint arXiv:1911.05507},
-  year={2019}
+% source: https://aclanthology.org/2026.findings-acl.640/
+@inproceedings{xu2025ultralong,
+    title = "From 128{K} to 4{M}: Efficient Training of Ultra-Long Context Large Language Models",
+    author = "Xu, Chejian  and
+      Ping, Wei  and
+      Xu, Peng  and
+      Liu, Zihan  and
+      Wang, Boxin  and
+      Shoeybi, Mohammad  and
+      Li, Bo  and
+      Catanzaro, Bryan",
+    editor = "Liakata, Maria  and
+      Moreira, Viviane P.  and
+      Zhang, Jiajun  and
+      Jurgens, David",
+    booktitle = "Findings of the {A}ssociation for {C}omputational {L}inguistics: {ACL} 2026",
+    month = jul,
+    year = "2026",
+    address = "San Diego, California, United States",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2026.findings-acl.640/",
+    doi = "10.18653/v1/2026.findings-acl.640",
+    pages = "13122--13133",
+    ISBN = "979-8-89176-395-1",
 }
 
+% source: https://arxiv.org/abs/2407.10671
+@article{yang2024qwen2,
+  title={{Qwen2} Technical Report},
+  author={Yang, An and Yang, Baosong and Hui, Binyuan and Zheng, Bo and Yu, Bowen and Zhou, Chang and Li, Chengpeng and Li, Chengyuan and Liu, Dayiheng and Huang, Fei and Dong, Guanting and Wei, Haoran and Lin, Huan and Tang, Jialong and Wang, Jialin and Yang, Jian and Tu, Jianhong and Zhang, Jianwei and Ma, Jianxin and Yang, Jianxin and Xu, Jin and Zhou, Jingren and Bai, Jinze and He, Jinzheng and Lin, Junyang and Dang, Kai and Lu, Keming and Chen, Keqin and Yang, Kexin and Li, Mei and Xue, Mingfeng and Ni, Na and Zhang, Pei and Wang, Peng and Peng, Ru and Men, Rui and Gao, Ruize and Lin, Runji and Wang, Shijie and Bai, Shuai and Tan, Sinan and Zhu, Tianhang and Li, Tianhao and Liu, Tianyu and Ge, Wenbin and Deng, Xiaodong and Zhou, Xiaohuan and Ren, Xingzhang and Zhang, Xinyu and Wei, Xipin and Ren, Xuancheng and Liu, Xuejing and Fan, Yang and Yao, Yang and Zhang, Yichang and Wan, Yu and Chu, Yunfei and Liu, Yuqiong and Cui, Zeyu and Zhang, Zhenru and Guo, Zhifang and Fan, Zhihao},
+  journal={arXiv preprint arXiv:2407.10671},
+  year={2024},
+  url={https://arxiv.org/abs/2407.10671}
+}
+
+% source: https://mlanthology.org/neurips/2024/yang2024neurips-sweagent/
+@inproceedings{yang2024sweagent,
+  title     = {{SWE-Agent: Agent-Computer Interfaces Enable Automated Software Engineering}},
+  author    = {Yang, John and Jimenez, Carlos E. and Wettig, Alexander and Lieret, Kilian and Yao, Shunyu and Narasimhan, Karthik and Press, Ofir},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2024},
+  doi       = {10.52202/079017-1601},
+  url       = {https://mlanthology.org/neurips/2024/yang2024neurips-sweagent/}
+}
+
+% source: https://openreview.net/forum?id=ruWC5LIMSo
 @inproceedings{ye2025longproc,
   title={{LongProc}: Benchmarking Long-Context Language Models on Long Procedural Generation},
-  author={Ye, Xi and Yin, Fangcong and He, Yinghui and Zhang, Joie and Yen, Howard and Gao, Tianyu and Durrett, Greg and Chen, Danqi},
-  booktitle={Conference on Language Modeling},
-  year={2025}
+  author={Xi Ye and Fangcong Yin and Yinghui He and Joie Zhang and Howard Yen and Tianyu Gao and Greg Durrett and Danqi Chen},
+  booktitle={Second Conference on Language Modeling (COLM)},
+  year={2025},
+  url={https://openreview.net/forum?id=ruWC5LIMSo}
 }
 
-@inproceedings{bai2025longbenchv2,
-  title={{LongBench} v2: Towards Deeper Understanding and Reasoning on Realistic Long-context Multitasks},
-  author={Bai, Yushi and Tu, Shangqing and Zhang, Jiajie and Peng, Hao and Wang, Xiaozhi and Lv, Xin and Cao, Shulin and Xu, Jiazheng and Hou, Lei and Dong, Yuxiao and Tang, Jie and Li, Juanzi},
-  booktitle={Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)},
-  pages={3639--3664},
-  year={2025}
+% source: https://mlanthology.org/neurips/2023/zheng2023neurips-judging/
+@inproceedings{zheng2023judging,
+  title     = {{Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena}},
+  author    = {Zheng, Lianmin and Chiang, Wei-Lin and Sheng, Ying and Zhuang, Siyuan and Wu, Zhanghao and Zhuang, Yonghao and Lin, Zi and Li, Zhuohan and Li, Dacheng and Xing, Eric P. and Zhang, Hao and Gonzalez, Joseph E and Stoica, Ion},
+  booktitle = {Advances in Neural Information Processing Systems (Datasets and Benchmarks Track)},
+  year      = {2023},
+  url       = {https://mlanthology.org/neurips/2023/zheng2023neurips-judging/}
 }
 
-@article{balunovic2025matharena,
-  title={{MathArena}: Evaluating {LLMs} on Uncontaminated Math Competitions},
-  author={Balunovi{\'c}, Mislav and Dekoninck, Jasper and Petrov, Ivo and Jovanovi{\'c}, Nikola and Vechev, Martin},
-  journal={arXiv preprint arXiv:2505.23281},
-  year={2025}
+% source: https://arxiv.org/abs/2608.22758 (first-page author block checked)
+@article{weidmann2026xtc,
+  title={{XTC}: Head-Aware Sampling by Excluding Top Choices},
+  author={Weidmann, Philipp Emanuel and Roush, Allen and Goldfeder, Judah and Basu, Sanjay and Shwartz-Ziv, Ravid},
+  journal={arXiv preprint arXiv:2608.22758},
+  year={2026},
+  url={https://arxiv.org/abs/2608.22758}
 }
 
-@article{xu2025ultralong,
-  title={From 128K to 4M: Efficient Training of Ultra-Long Context Large Language Models},
-  author={Xu, Chejian and Ping, Wei and Xu, Peng and Liu, Zihan and Wang, Boxin and Shoeybi, Mohammad and Li, Bo and Catanzaro, Bryan},
-  journal={arXiv preprint arXiv:2504.06214},
-  year={2025}
-}
-
-@inproceedings{lightman2024verify,
-  title={Let's Verify Step by Step},
-  author={Lightman, Hunter and Kosaraju, Vineet and Burda, Yuri and Edwards, Harrison and Baker, Bowen and Lee, Teddy and Leike, Jan and Schulman, John and Sutskever, Ilya and Cobbe, Karl},
-  booktitle={International Conference on Learning Representations},
-  year={2024}
+% source: https://arxiv.org/abs/2608.22761 (first-page author block checked)
+@article{weidmann2026dry,
+  title={Don't Repeat Yourself: Stopping Verbatim Loops at Sampling Time},
+  author={Weidmann, Philipp Emanuel and Roush, Allen and Goldfeder, Judah and Basu, Sanjay and Shwartz-Ziv, Ravid},
+  journal={arXiv preprint arXiv:2608.22761},
+  year={2026},
+  url={https://arxiv.org/abs/2608.22761}
 }
